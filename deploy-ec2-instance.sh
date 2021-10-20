@@ -33,3 +33,4 @@ if [ instanceexists == "1" ]; then aws ec2 run-instances --image-id resolve:ssm:
 
 # Attach identification tags to the EC2 instance
 aws ec2 create-tags --resources `aws ec2 describe-instances --filters "Name=instance-type,Values=t2.micro" --query "Reservations[].Instances[].InstanceId" --output text` --tags Key=Name,Value=awsec2-litrepublicpoc
+
