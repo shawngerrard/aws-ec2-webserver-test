@@ -20,17 +20,17 @@ fi
 # Get the ID of the security group that will govern this instance
 groupid=$(aws ec2 describe-security-groups --group-name litrepublicpoc_sg_apsoutheast2 --query 'SecurityGroups[].GroupId' --output text)
 
-# Get this instance ID
-#instanceid=$(aws ec2 describe-instances | jq '.Reservations[].Instances[] | .KeyName .State.Name' | grep LitRepublicPoc)
-instanceexists=$(aws ec2 describe-instances | jq '.Reservations[].Instances[] | .KeyName, .State.Name' | grep LitRepublicPoc | grep 'running')
+# Determine if an instance is already running
+instanceexists=$(aws ec2 describe-instances | jq -c '.Reservations[].Instances[] | select(.Tags[]["Value"] == "awsec2-litrepublicpoc"), .State.Name' | grep 'running')
 
-# Start the EC2 instance if it is not running
-if [ instanceexists == "1" ]; then aws ec2 run-instances --image-id resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2 --count 1 --instance-type t2.micro --key-name LitRepublicPoc --security-group-ids $groupid; fi
+# Start the EC2 instance if it is not running and attach a name tag to the instance
+if [ $? == "1" ]; then 
+    aws ec2 run-instances --image-id resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2 --count 1 --instance-type t2.micro --key-name LitRepublicPoc --security-group-ids $groupid --tag-specifications 'ResourceType=instance,Tags=[{Key="Name",Value="awsec2-litrepublicpoc"}]'
+fi
 
-#echo State of this EC2 Instance:
-#aws ec2 describe-instances | jq '.Reservations[].Instances[].KeyName'
-#aws ec2 describe-instances | jq '.Reservations[].Instances[].State.Name'
+# Terminate the EC2 instance
+# aws ec2 terminate-instances --instance-ids `aws ec2 describe-instances --filters Name=tag:Name,Values=awsec2-litrepublicpoc Name=instance-state-name,Values=running --query 'Reservations[].Instances[].InstanceId' --output text`
 
-# Attach identification tags to the EC2 instance
-aws ec2 create-tags --resources `aws ec2 describe-instances --filters "Name=instance-type,Values=t2.micro" --query "Reservations[].Instances[].InstanceId" --output text` --tags Key=Name,Value=awsec2-litrepublicpoc
-
+# Echo State of this EC2 Instance:
+aws ec2 describe-instances | jq '.Reservations[].Instances[].Tags[].Value'
+aws ec2 describe-instances | jq '.Reservations[].Instances[].State.Name'
