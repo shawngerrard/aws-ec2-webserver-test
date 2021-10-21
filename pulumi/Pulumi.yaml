@@ -1,0 +1,3 @@
+name: litrepublicpoc
+runtime: python
+description: Uses Python to create an EC2 webserver deployment.
