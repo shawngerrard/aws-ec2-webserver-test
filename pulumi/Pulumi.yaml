@@ -1,0 +1,3 @@
+name: litrepublicpoc
+runtime: python
+description: Uses Pulumi to build and start the Lit Republic Python deployment.
