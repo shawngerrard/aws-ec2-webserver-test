@@ -29,12 +29,16 @@ group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
 # Define the instance start-up scripting
 user_data = """
 #!/bin/bash
-sudo apt-get 
-curl -LO -v https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube
+curl -o k3s.sh -sfL https://get.k3s.io
+cat k3s.sh
+chmod +x k3s.sh
+./k3s.sh
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > index.html
-nohup python -m SimpleHTTPServer 443 &
 """
+
+# Removed:
+#curl -LO -v https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+#sudo install minikube-linux-amd64 /usr/local/bin/minikube
 
 # Define the AWS EC2 instance to start
 server = aws.ec2.Instance('litrepublicpoc-www',
@@ -46,6 +50,9 @@ server = aws.ec2.Instance('litrepublicpoc-www',
     tags={
         "Name":"litrepublicpoc-ec2"
     })
+
+# Current connection string:
+# ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2 --query 'Reservations[].Instances[].PublicDnsName' --output text`
 
 # Export the public IP and hostname of the Amazon server
 pulumi.export('publicIp', server.public_ip)
