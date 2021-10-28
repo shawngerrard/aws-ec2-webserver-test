@@ -50,7 +50,7 @@ server = aws.ec2.Instance('litrepublicpoc-www',
     tags={
         "Name":"litrepublicpoc-ec2"
     })
-
+    
 # Current connection string:
 # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2 --query 'Reservations[].Instances[].PublicDnsName' --output text`
 
