@@ -29,16 +29,19 @@ group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
 # Define the instance start-up scripting
 user_data = """
 #!/bin/bash
-curl -o k3s.sh -sfL https://get.k3s.io
-cat k3s.sh
-chmod +x k3s.sh
-./k3s.sh
+curl -sfL https://get.k3s.io | sh -
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > index.html
 """
 
-# Removed:
+# Removed #1:
 #curl -LO -v https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 #sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# Removed #2:
+#curl -o k3s.sh -sfL https://get.k3s.io
+#cat k3s.sh
+#chmod +x k3s.sh
+#./k3s.sh
 
 # Define the AWS EC2 instance to start
 server = aws.ec2.Instance('litrepublicpoc-www',
