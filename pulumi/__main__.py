@@ -8,9 +8,9 @@ size = 't2.micro'
 extip = requests.get('http://checkip.amazonaws.com/')
 
 # Define Amazon Machine Image to use
-ami = aws.get_ami(most_recent="true",
+ami = aws.ec2.get_ami(most_recent="true",
                   owners=["099720109477"],
-                  filters=[{"name":"image-id","values":["ami-0582d6348e0b0e39e"]}])
+                  filters=[{"name":"image-id","values":["ami-0bf8b986de7e3c7ce"]}])
 
 # Define administrator security group to allow SSH & HTTP access
 group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
