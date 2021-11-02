@@ -44,7 +44,7 @@ You can find information on the Pulumi website regarding some of [the files that
 
 When we created the project in [Step 1](#step1), Pulumi scaffolds a number of files and directories into the project directory. The file **__main__.py** is the default file that executes when we attempt to deploy cloud infrastructure.
 
-I've added my [__main__.py](pulumi/__main__.py) file into the repository for you to use or modify.
+I've added my [__main__.py](__main__.py) file into the repository for you to use or modify.
 
 My main script defines an Ubuntu [Amazon Machine Image (AMI)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html), a [Security Group](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#VPCSecurityGroups), and then attaches these resources to a newly-defined EC2 instance.
 
