@@ -1,8 +1,8 @@
 # aws-ec2-webserver-test
 
-The purpose of this repository is to automatically stand-up an AWS EC2 instance using Docker containers to run a persistant Wordpress instance.
+The purpose of this repository is to stand-up an AWS EC2 instance and use Lightweight Kubernetes (k3s) containers to run a persistant Wordpress instance that can be accessed publicly over HTTPS (443).
 
-Rationale: To run a POC for providing a web presence for a store.
+Rationale: To run a cloud-native POC for providing a web channel for a store.
 
 **Note:** This guide differs from the instructions in *README.md* in that we use language-agnostic [Pulumi](https://www.pulumi.com/) to build and manage our infrastructure code, rather than YAML code managed by Terraform, Helm, Ansible, etc.
 
@@ -14,9 +14,10 @@ You'll also need to [install Pulumi](https://www.pulumi.com/docs/get-started/ins
 
 Process is split into three steps:
 1. [Create and Configure a new Pulumi Project](#step1)
-2. [Creating the EC2 instance](#step2)
-3. [Installing Docker within the EC2 instance](#step3)
-4. [Deploying the services via Docker containers](#step4)
+2. [Create an EC2 instance with HTTPS and SSH access](#step2)
+3. [Creating the EC2 instance](#step3)
+4. [Installing Docker within the EC2 instance](#step4)
+5. [Deploying the services via Docker containers](#step5)
 
 
 ## Step 1 - Create and Configure a new Pulumi Project <a href="step1"></a>
