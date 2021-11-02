@@ -1,14 +1,16 @@
 # aws-ec2-webserver-test
 
-The purpose of this repository is to stand-up an AWS EC2 instance and use Lightweight Kubernetes (k3s) containers to run a persistant Wordpress instance that can be accessed publicly over HTTPS (443).
+The purpose of this repository is to stand-up an AWS EC2 instance and use Lightweight Kubernetes (k3s) containers to run a persistent Wordpress instance that can be accessed publicly over HTTPS (443).
 
 Rationale: To run a cloud-native POC for providing a web channel for a store.
 
-**Note:** This guide differs from the instructions in *README.md* in that we use language-agnostic [Pulumi](https://www.pulumi.com/) to build and manage our infrastructure code, rather than YAML code managed by Terraform, Helm, Ansible, etc.
+**Note:** This guide differs from the instructions in [README.md](../README.md) in that we use language-agnostic [Pulumi](https://www.pulumi.com/) to build and manage our infrastructure code, rather than YAML code managed by Terraform, Helm, Ansible, etc.
 
-We'll be using Python as our chosen language and AWS for resourcing our infrastructure, so make sure you [download and install Python v3 or above](https://www.python.org/downloads/). This guide assumes that you already have an AWS account, have set up AWS CLI, and can authenticate to AWS through CLI (either root or IAM).
+We'll be using Python as our chosen language and AWS for resourcing our infrastructure, so make sure you [download and install Python v3 or above](https://www.python.org/downloads/). 
 
-Once you have Python3 installed, make sure you install ```venv``` with the command ```sudo pip3 install virtualenv ```. This is a tool to create isolated Python environments that contain all the necessary libraries to use the packages that a Python project will need. This is also useful to explicitly isolate different Python projects from each other to avoid cross-contamination.
+This guide assumes that you already have an AWS account, have set up AWS CLI, and can authenticate to AWS through CLI (either root or IAM).
+
+Once you have Python3 installed, make sure you install ```venv``` with the command ```sudo pip3 install virtualenv ```. This is a tool to create isolated Python environments that contain all the necessary libraries to use the packages that a Python project will need. This is also useful to explicitly isolate different Python projects from each other during compilation to avoid any cross-contamination of code.
 
 You'll also need to [install Pulumi](https://www.pulumi.com/docs/get-started/install/).
 
@@ -42,7 +44,7 @@ You can find information on the Pulumi website regarding some of [the files that
 
 When we created the project in [Step 1](#step1), Pulumi scaffolds a number of files and directories into the project directory. The file **__main__.py** is the default file that executes when we attempt to deploy cloud infrastructure.
 
-I've added my [__main__.py](pulumi/__main__.py) file into the repository for you to use or modify.
+I've added my [__main__.py](__main__.py) file into the repository for you to use or modify.
 
 My main script defines an Ubuntu [Amazon Machine Image (AMI)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html), a [Security Group](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#VPCSecurityGroups), and then attaches these resources to a newly-defined EC2 instance.
 
@@ -74,7 +76,9 @@ source venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
-With our project dependencies installed, and our virtualenv activated, we're ready to deploy with the command ```pulumi up```.
+With our project dependencies installed, and our virtualenv activated, we're ready to deploy our infrastructure with the command ```pulumi up```.
+
+Take note of the **public DNS** as you may use this later to access your webserver.
 
 
 ## Step 2 - Installing Docker into Amazon EC2 <a href="step2"></a>
