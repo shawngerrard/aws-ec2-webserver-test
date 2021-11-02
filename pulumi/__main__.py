@@ -27,10 +27,9 @@ group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
     ])
 
 # Define the instance start-up scripting
-user_data = """
-#!/bin/bash
+user_data = """#!/bin/bash
+
 curl -sfL https://get.k3s.io | sh -
-echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > index.html
 """
 
 # Removed #1:
@@ -43,11 +42,14 @@ echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo th
 #chmod +x k3s.sh
 #./k3s.sh
 
+# Removed #3:
+#echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > index.html
+
 # Define the AWS EC2 instance to start
 server = aws.ec2.Instance('litrepublicpoc-www',
     instance_type=size,
     vpc_security_group_ids=[group.id], # Reference security group from above
-    user_data = user_data, # Reference user data above
+    user_data=user_data, # Reference user data above
     ami=ami.id,
     key_name='LitRepublicPoc',
     tags={
