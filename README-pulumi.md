@@ -14,7 +14,7 @@ You'll also need to [install Pulumi](https://www.pulumi.com/docs/get-started/ins
 
 Process is split into three steps:
 1. [Create and Configure a new Pulumi Project](#step1)
-2. [Create an EC2 instance with HTTPS and SSH access](#step2)
+2. [Create an EC2 instance with K3S installed](#step2)
 3. [Creating the EC2 instance](#step3)
 4. [Installing Docker within the EC2 instance](#step4)
 5. [Deploying the services via Docker containers](#step5)
@@ -34,6 +34,17 @@ I've named the project directory *pulumi* and created a new aws-python Pulumi pr
 The CLI will then prompt you to authenticate with the Pulumi server, and then you'll be asked to configure the general settings for your new [Pulumi stack](https://www.pulumi.com/docs/intro/concepts/stack/), such as project name and description. You may also be prompted to enter some AWS configuration settings, such as the default region for the project.
 
 You can find information on the Pulumi website regarding some of [the files that are generated during project creation](https://www.pulumi.com/docs/get-started/aws/review-project/).
+
+
+## Step 2 - Create an EC2 instance with K3S installed <a href="step2"></a>
+
+When we created the project in [Step 1](#step1), Pulumi scaffolds a number of files and directories into the project directory. The file **__main__.py** is the default file that executes when we attempt to deploy cloud infrastructure.
+
+I've added my [__main__.py](pulumi/__main__.py) file into the repository for you to use or modify.
+
+My main script defines an Ubuntu [Amazon Machine Image (AMI)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html), a [Security Group](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#VPCSecurityGroups), and then attaches these resources to a newly-defined EC2 instance.
+
+A nifty feature of AWS is that we can also add some code to the [User-Data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) attribute of the EC2 instance to define some scripts to run as the instance is starting up. This is useful if you want to install applications or modules into the instance automatically upon startup. In this case, we use the *user-data* attribute of our EC2 instance definition to install [Lightweight Kubernetes (K3S)](https://k3s.io/). 
 
 
 ## Step 2 - Installing Docker into Amazon EC2 <a href="step2"></a>

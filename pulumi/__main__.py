@@ -26,24 +26,12 @@ group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
         { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] }
     ])
 
-# Define the instance start-up scripting
+# Define the instance start-up scripting and create a static index web page
 user_data = """#!/bin/bash
 
 curl -sfL https://get.k3s.io | sh -
+echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > index.html
 """
-
-# Removed #1:
-#curl -LO -v https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-#sudo install minikube-linux-amd64 /usr/local/bin/minikube
-
-# Removed #2:
-#curl -o k3s.sh -sfL https://get.k3s.io
-#cat k3s.sh
-#chmod +x k3s.sh
-#./k3s.sh
-
-# Removed #3:
-#echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > index.html
 
 # Define the AWS EC2 instance to start
 server = aws.ec2.Instance('litrepublicpoc-www',
