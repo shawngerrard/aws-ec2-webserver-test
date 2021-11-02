@@ -6,9 +6,9 @@ Rationale: To run a cloud-native POC for providing a web channel for a store.
 
 **Note:** This guide differs from the instructions in *README.md* in that we use language-agnostic [Pulumi](https://www.pulumi.com/) to build and manage our infrastructure code, rather than YAML code managed by Terraform, Helm, Ansible, etc.
 
-We'll be using Python as our chosen language and AWS for resourcing our infrastructure, so make sure you [download and install Python v3 or above](https://www.python.org/downloads/).
+We'll be using Python as our chosen language and AWS for resourcing our infrastructure, so make sure you [download and install Python v3 or above](https://www.python.org/downloads/). This guide assumes that you already have an AWS account, have set up AWS CLI, and can authenticate to AWS through CLI (either root or IAM).
 
-This guide assumes that you already have an AWS account, have set up AWS CLI, and can authenticate to AWS through CLI (either root or IAM).
+Once you have Python3 installed, make sure you install ```venv``` with the command ```sudo pip3 install virtualenv ```. This is a tool to create isolated Python environments that contain all the necessary libraries to use the packages that a Python project will need. This is also useful to explicitly isolate different Python projects from each other to avoid cross-contamination.
 
 You'll also need to [install Pulumi](https://www.pulumi.com/docs/get-started/install/).
 
@@ -38,6 +38,8 @@ You can find information on the Pulumi website regarding some of [the files that
 
 ## Step 2 - Create an EC2 instance with K3S installed <a href="step2"></a>
 
+### Define the AWS Infrastructure
+
 When we created the project in [Step 1](#step1), Pulumi scaffolds a number of files and directories into the project directory. The file **__main__.py** is the default file that executes when we attempt to deploy cloud infrastructure.
 
 I've added my [__main__.py](pulumi/__main__.py) file into the repository for you to use or modify.
@@ -45,6 +47,13 @@ I've added my [__main__.py](pulumi/__main__.py) file into the repository for you
 My main script defines an Ubuntu [Amazon Machine Image (AMI)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html), a [Security Group](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#VPCSecurityGroups), and then attaches these resources to a newly-defined EC2 instance.
 
 A nifty feature of AWS is that we can also add some code to the [User-Data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) attribute of the EC2 instance to define some scripts to run as the instance is starting up. This is useful if you want to install applications or modules into the instance automatically upon startup. In this case, we use the *user-data* attribute of our EC2 instance definition to install [Lightweight Kubernetes (K3S)](https://k3s.io/). 
+
+
+### Deploy the AWS Infrastructure
+
+So, we've built our infrastructure as Python code. Now, we need to deploy it and test that K3S has installed correctly.
+
+Before we deploy our infrastructure, we'll need to make some tweaks.
 
 
 ## Step 2 - Installing Docker into Amazon EC2 <a href="step2"></a>
