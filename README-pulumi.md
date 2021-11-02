@@ -53,7 +53,28 @@ A nifty feature of AWS is that we can also add some code to the [User-Data](http
 
 So, we've built our infrastructure as Python code. Now, we need to deploy it and test that K3S has installed correctly.
 
-Before we deploy our infrastructure, we'll need to make some tweaks.
+Before we deploy our infrastructure, we'll need to secure and isolate our Pulumi project from other projects with a virtual environment (venv). 
+
+Before we do this, check your project directory for a ```requirements.txt``` file. Open it (or create it, if for some reason the ```pulumi new``` command didn't scaffold the file for you, or you do not have the file from this .git repo), and ensure it contains the following lines:
+
+```
+pulumi>=3.0.0,<4.0.0
+pulumi-aws>=4.0.0,<5.0.0
+requests
+```
+
+This file informs Pulumi of the dependent packages needed for our Pulumi project. In this case, we want a version between 3 & 4 of Pulumi CLI, a version between 4 & 5 of the Pulumi AWS modules (in order to interact with AWS resources), and the Python *requests* module, which allows us to make API calls with Python3.
+
+The following code will create a Python virtualenv, activate it, and install any dependencies from our *requirements.txt* file.
+
+```
+cd path/to/pulumi/project/folder
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+```
+
+With our project dependencies installed, and our virtualenv activated, we're ready to deploy with the command ```pulumi up```.
 
 
 ## Step 2 - Installing Docker into Amazon EC2 <a href="step2"></a>
