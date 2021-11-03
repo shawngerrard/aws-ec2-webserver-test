@@ -15,9 +15,9 @@ Once you have Python3 installed, make sure you install ```venv``` with the comma
 You'll also need to [install Pulumi](https://www.pulumi.com/docs/get-started/install/).
 
 Process is split into three steps:
-1. [Create and Configure a new Pulumi Project](#step1)
+1. [Create and configure a new Pulumi project](#step1)
 2. [Create an EC2 instance with K3S installed](#step2)
-3. [Creating the EC2 instance](#step3)
+3. [Create a Kubernetes cluster](#step3)
 4. [Installing Docker within the EC2 instance](#step4)
 5. [Deploying the services via Docker containers](#step5)
 
@@ -81,6 +81,5 @@ With our project dependencies installed, and our virtualenv activated, we're rea
 Take note of the **public DNS** as you may use this later to access your webserver.
 
 
-## Step 2 - Installing Docker into Amazon EC2 <a href="step2"></a>
+## Step 3 - Create a Kubernetes cluster <a href="step3"></a>
 
-## Step 3 - Deploying Services via Docker <a href="step3"></a>

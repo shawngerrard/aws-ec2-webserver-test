@@ -27,11 +27,7 @@ group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
     ])
 
 # Define the instance start-up scripting and create a static index web page
-user_data = """#!/bin/bash
-
-curl -sfL https://get.k3s.io | sh -
-echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > index.html
-"""
+user_data = startup-app-install-script.sh
 
 # Define the AWS EC2 instance to start
 server = aws.ec2.Instance('litrepublicpoc-www',
