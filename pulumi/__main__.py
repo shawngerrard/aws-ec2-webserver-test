@@ -27,13 +27,24 @@ group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
     ])
 
 # Define the instance start-up scripting and create a static index web page
-user_data = startup-app-install-script.sh
+user_data = """#!/bin/bash
+
+# Install K3S
+curl -sfL https://get.k3s.io | sh -
+
+# Install Helm
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
+"""
 
 # Define the AWS EC2 instance to start
 server = aws.ec2.Instance('litrepublicpoc-www',
     instance_type=size,
-    vpc_security_group_ids=[group.id], # Reference security group from above
-    user_data=user_data, # Reference user data above
+    vpc_security_group_ids=[group.id], 
+    user_data=user_data,
     ami=ami.id,
     key_name='LitRepublicPoc',
     tags={
