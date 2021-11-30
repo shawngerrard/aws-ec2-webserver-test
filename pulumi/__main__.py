@@ -37,8 +37,11 @@ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scrip
 chmod 700 get_helm.sh
 ./get_helm.sh
 
-# Add Helm repositories
+# Add Bitnami Helm chart repository for Nginx
 helm repo add bitnami https://charts.bitnami.com/bitnami
+
+# Install Helm chart for Nginx
+
 
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
