@@ -26,7 +26,7 @@ group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
         { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] }
     ])
 
-# Define the instance start-up scripting and create a static index web page
+# Define the instance start-up scripting
 user_data = """#!/bin/bash
 
 # Install K3S
@@ -36,6 +36,9 @@ curl -sfL https://get.k3s.io | sh -
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 chmod 700 get_helm.sh
 ./get_helm.sh
+
+# Add Helm repositories
+helm repo add bitnami https://charts.bitnami.com/bitnami
 
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
