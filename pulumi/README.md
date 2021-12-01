@@ -38,7 +38,7 @@ The CLI will then prompt you to authenticate with the Pulumi server, and then yo
 You can find information on the Pulumi website regarding some of [the files that are generated during project creation](https://www.pulumi.com/docs/get-started/aws/review-project/).
 
 
-## Step 2 - Create an EC2 instance with K3S installed <a href="step2"></a>
+## Step 2 - Create an EC2 instance with K3S and Helm installed <a href="step2"></a>
 
 ### Define the AWS Infrastructure
 
@@ -50,10 +50,12 @@ My main script defines an Ubuntu [Amazon Machine Image (AMI)](https://docs.aws.a
 
 A nifty feature of AWS is that we can also add some code to the [User-Data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) attribute of the EC2 instance to define some scripts to run as the instance is starting up. This is useful if you want to install applications or modules into the instance automatically upon startup. In this case, we use the *user-data* attribute of our EC2 instance definition to install [Lightweight Kubernetes (K3S)](https://k3s.io/). 
 
+I've added a pre-startup script (UserData) to install applications, such as K3S and Helm, into the EC2 instance when *___main___.py* is run.
+
 
 ### Deploy the AWS Infrastructure
 
-So, we've built our infrastructure as Python code. Now, we need to deploy it and test that K3S has installed correctly.
+So, we've built our infrastructure as Python code. Now, we need to deploy it and test that K3S and Helm have installed correctly.
 
 Before we deploy our infrastructure, we'll need to secure and isolate our Pulumi project from other projects with a virtual environment (venv). 
 

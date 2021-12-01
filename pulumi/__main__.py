@@ -38,7 +38,7 @@ chmod 700 get_helm.sh
  helm repo add bitnami https://charts.bitnami.com/bitnami
 
 # Install K3S
-curl -sfL https://get.k3s.io | sh -
+curl -sfL https://get.k3s.io | sh -s - server --no-deploy traefik --no-deploy servicelb
 
 # Create Lit Republic namespace and context
 kubectl create namespace litrepublic
@@ -68,3 +68,12 @@ server = aws.ec2.Instance('litrepublicpoc-www',
 # Export the public IP and hostname of the Amazon server
 pulumi.export('publicIp', server.public_ip)
 pulumi.export('publicHostName', server.public_dns)
+
+# STEPS
+# Install Pulumi
+# Create Pulumi Project
+# Modify __main__.py with deployment attributes (UserData)
+# 
+# Create EC2 instance
+# Check if Traefik installed on instance
+    # sudo kubectl get deployments -n kube-system
