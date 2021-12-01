@@ -29,6 +29,14 @@ group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
 # Define the instance start-up scripting
 user_data = """#!/bin/bash
 
+# Install Helm
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+# Add Bitnami Helm chart repository for Nginx
+ helm repo add bitnami https://charts.bitnami.com/bitnami
+
 # Install K3S
 curl -sfL https://get.k3s.io | sh -
 
@@ -36,14 +44,6 @@ curl -sfL https://get.k3s.io | sh -
 kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www
-
-# Install Helm
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-
-# Add Bitnami Helm chart repository for Nginx
-# helm repo add bitnami https://charts.bitnami.com/bitnami
 
 # Install Helm chart for Nginx
 
