@@ -2,6 +2,7 @@
 import pulumi
 import requests
 import pulumi_aws as aws
+from pulumi_kubernetes.helm.v3 import Chart, ChartOpts, FetchOpts
 
 # Set variable constants
 size = 't2.micro'
@@ -35,21 +36,32 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 
 # Add Bitnami Helm chart repository for Nginx
- helm repo add bitnami https://charts.bitnami.com/bitnami
+# helm repo add bitnami https://charts.bitnami.com/bitnami
 
 # Install K3S
 curl -sfL https://get.k3s.io | sh -s - server --no-deploy traefik --no-deploy servicelb
 
-# Create Lit Republic namespace and context
+# Create Lit Republic namespace and context in Kubernetes
 kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www
 
-# Install Helm chart for Nginx
-
-
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
+
+# Define the NGINX Ingress Controller to be deployed through Helm
+nginx_ingress = Chart(
+    "nginx-ingress",
+    ChartOpts(
+        chart="nginx-ingress-controller",
+        version="1.24.4",
+        namespace="litrepublic",
+        fetch_opts=FetchOpts(
+            repo="https://charts.bitnami.com/bitnami",
+        ),
+    ),
+)
+
 
 # Define the AWS EC2 instance to start
 server = aws.ec2.Instance('litrepublicpoc-www',
@@ -65,7 +77,7 @@ server = aws.ec2.Instance('litrepublicpoc-www',
 # Current connection string:
 # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2 --query 'Reservations[].Instances[].PublicDnsName' --output text`
 
-# Export the public IP and hostname of the Amazon server
+# Export the public IP and hostname of the Amazon server to output
 pulumi.export('publicIp', server.public_ip)
 pulumi.export('publicHostName', server.public_dns)
 
