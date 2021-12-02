@@ -1,8 +1,11 @@
 # Import modules
 import pulumi
+from pulumi_kubernetes.helm.v3 import Chart, ChartOpts, FetchOpts
 import requests
 import pulumi_aws as aws
-from pulumi_kubernetes.helm.v3 import Chart, ChartOpts, FetchOpts
+# import * as k3s from "@pulumi/kubernetes";
+# import pulumi_kubernetes as k3s
+
 
 # Set variable constants
 size = 't2.micro'
@@ -31,12 +34,9 @@ group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
 user_data = """#!/bin/bash
 
 # Install Helm
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-
-# Add Bitnami Helm chart repository for Nginx
-# helm repo add bitnami https://charts.bitnami.com/bitnami
+# curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+# chmod 700 get_helm.sh
+# ./get_helm.sh
 
 # Install K3S
 curl -sfL https://get.k3s.io | sh -s - server --no-deploy traefik --no-deploy servicelb
@@ -46,21 +46,24 @@ kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www
 
+# Add Bitnami Helm chart repository for Nginx
+# helm repo add bitnami https://charts.bitnami.com/bitnami
+
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
 
 # Define the NGINX Ingress Controller to be deployed through Helm
-nginx_ingress = Chart(
-    "nginx-ingress",
-    ChartOpts(
-        chart="nginx-ingress-controller",
-        version="1.24.4",
-        namespace="litrepublic",
-        fetch_opts=FetchOpts(
-            repo="https://charts.bitnami.com/bitnami",
-        ),
-    ),
-)
+# nginx_ingress = Chart(
+#     "nginx-ingress",
+#     ChartOpts(
+#         chart="nginx-ingress-controller",
+#         version="1.24.4",
+#         namespace="litrepublic",
+#         fetch_opts=FetchOpts(
+#             repo="https://charts.bitnami.com/bitnami",
+#         ),
+#     ),
+# )
 
 
 # Define the AWS EC2 instance to start
@@ -83,9 +86,18 @@ pulumi.export('publicHostName', server.public_dns)
 
 # STEPS
 # Install Pulumi
-# Create Pulumi Project
+# Create Pulumi project
+# Create a virtual environment and install dependencies
+    # create virtual env
+        # python3 -m venv venv
+    # update wheel to ensure this is built OK
+        # sudo pip3 install wheel --upgrade 
+    # install deps
+        # venv/bin/pip install -r requirements.txt
 # Modify __main__.py with deployment attributes (UserData)
 # 
 # Create EC2 instance
 # Check if Traefik installed on instance
     # sudo kubectl get deployments -n kube-system
+    # Uninstall Traefik
+# ensure wheel is up to date before 

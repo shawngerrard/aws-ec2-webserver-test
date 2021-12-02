@@ -1,0 +1,491 @@
+{
+    "version": 3,
+    "deployment": {
+        "manifest": {
+            "time": "2021-12-02T12:36:28.327078359+13:00",
+            "magic": "67033a0ba6d8f60c70c98853699e5e42e3b230fc73b81565c34f60eb1ce55df1",
+            "version": "v3.17.0"
+        },
+        "secrets_providers": {
+            "type": "service",
+            "state": {
+                "url": "https://api.pulumi.com",
+                "owner": "shawng",
+                "project": "litrepublicpoc",
+                "stack": "web-dev"
+            }
+        },
+        "resources": [
+            {
+                "urn": "urn:pulumi:web-dev::litrepublicpoc::pulumi:pulumi:Stack::litrepublicpoc-web-dev",
+                "custom": false,
+                "type": "pulumi:pulumi:Stack",
+                "outputs": {
+                    "publicHostName": "ec2-54-66-243-197.ap-southeast-2.compute.amazonaws.com",
+                    "publicIp": "54.66.243.197"
+                }
+            },
+            {
+                "urn": "urn:pulumi:web-dev::litrepublicpoc::pulumi:providers:aws::default",
+                "custom": true,
+                "id": "7022a5c5-a614-458b-958c-1fa4fb896b54",
+                "type": "pulumi:providers:aws",
+                "inputs": {
+                    "region": "ap-southeast-2",
+                    "version": "4.25.0"
+                },
+                "outputs": {
+                    "region": "ap-southeast-2",
+                    "version": "4.25.0"
+                }
+            },
+            {
+                "urn": "urn:pulumi:web-dev::litrepublicpoc::pulumi:providers:aws::default_4_25_0",
+                "custom": true,
+                "id": "dbded8f4-4428-4f86-9261-a46734d0e36d",
+                "type": "pulumi:providers:aws",
+                "inputs": {
+                    "region": "ap-southeast-2",
+                    "version": "4.25.0"
+                },
+                "outputs": {
+                    "region": "ap-southeast-2",
+                    "version": "4.25.0"
+                }
+            },
+            {
+                "urn": "urn:pulumi:web-dev::litrepublicpoc::aws:ec2/securityGroup:SecurityGroup::administrator-sg-litrepublicpoc",
+                "custom": true,
+                "id": "sg-09329e5d02b32961d",
+                "type": "aws:ec2/securityGroup:SecurityGroup",
+                "inputs": {
+                    "__defaults": [
+                        "name",
+                        "revokeRulesOnDelete"
+                    ],
+                    "description": "Enable SSH and HTTP access for Lit Republic",
+                    "egress": [
+                        {
+                            "__defaults": [
+                                "self"
+                            ],
+                            "cidrBlocks": [
+                                "121.99.164.101/32"
+                            ],
+                            "fromPort": 22,
+                            "protocol": "tcp",
+                            "self": false,
+                            "toPort": 22
+                        },
+                        {
+                            "__defaults": [
+                                "self"
+                            ],
+                            "cidrBlocks": [
+                                "0.0.0.0/0"
+                            ],
+                            "fromPort": 80,
+                            "protocol": "tcp",
+                            "self": false,
+                            "toPort": 80
+                        },
+                        {
+                            "__defaults": [
+                                "self"
+                            ],
+                            "cidrBlocks": [
+                                "0.0.0.0/0"
+                            ],
+                            "fromPort": 443,
+                            "protocol": "tcp",
+                            "self": false,
+                            "toPort": 443
+                        }
+                    ],
+                    "ingress": [
+                        {
+                            "__defaults": [
+                                "self"
+                            ],
+                            "cidrBlocks": [
+                                "121.99.164.101/32"
+                            ],
+                            "fromPort": 22,
+                            "protocol": "tcp",
+                            "self": false,
+                            "toPort": 22
+                        },
+                        {
+                            "__defaults": [
+                                "self"
+                            ],
+                            "cidrBlocks": [
+                                "0.0.0.0/0"
+                            ],
+                            "fromPort": 80,
+                            "protocol": "tcp",
+                            "self": false,
+                            "toPort": 80
+                        },
+                        {
+                            "__defaults": [
+                                "self"
+                            ],
+                            "cidrBlocks": [
+                                "0.0.0.0/0"
+                            ],
+                            "fromPort": 443,
+                            "protocol": "tcp",
+                            "self": false,
+                            "toPort": 443
+                        }
+                    ],
+                    "name": "administrator-sg-litrepublicpoc-d27f630",
+                    "revokeRulesOnDelete": false
+                },
+                "outputs": {
+                    "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":600000000000,\"delete\":900000000000},\"schema_version\":\"1\"}",
+                    "arn": "arn:aws:ec2:ap-southeast-2:979803830563:security-group/sg-09329e5d02b32961d",
+                    "description": "Enable SSH and HTTP access for Lit Republic",
+                    "egress": [
+                        {
+                            "cidrBlocks": [
+                                "0.0.0.0/0"
+                            ],
+                            "description": "",
+                            "fromPort": 80,
+                            "ipv6CidrBlocks": [],
+                            "prefixListIds": [],
+                            "protocol": "tcp",
+                            "securityGroups": [],
+                            "self": false,
+                            "toPort": 80
+                        },
+                        {
+                            "cidrBlocks": [
+                                "0.0.0.0/0"
+                            ],
+                            "description": "",
+                            "fromPort": 443,
+                            "ipv6CidrBlocks": [],
+                            "prefixListIds": [],
+                            "protocol": "tcp",
+                            "securityGroups": [],
+                            "self": false,
+                            "toPort": 443
+                        },
+                        {
+                            "cidrBlocks": [
+                                "121.99.164.101/32"
+                            ],
+                            "description": "",
+                            "fromPort": 22,
+                            "ipv6CidrBlocks": [],
+                            "prefixListIds": [],
+                            "protocol": "tcp",
+                            "securityGroups": [],
+                            "self": false,
+                            "toPort": 22
+                        }
+                    ],
+                    "id": "sg-09329e5d02b32961d",
+                    "ingress": [
+                        {
+                            "cidrBlocks": [
+                                "0.0.0.0/0"
+                            ],
+                            "description": "",
+                            "fromPort": 80,
+                            "ipv6CidrBlocks": [],
+                            "prefixListIds": [],
+                            "protocol": "tcp",
+                            "securityGroups": [],
+                            "self": false,
+                            "toPort": 80
+                        },
+                        {
+                            "cidrBlocks": [
+                                "0.0.0.0/0"
+                            ],
+                            "description": "",
+                            "fromPort": 443,
+                            "ipv6CidrBlocks": [],
+                            "prefixListIds": [],
+                            "protocol": "tcp",
+                            "securityGroups": [],
+                            "self": false,
+                            "toPort": 443
+                        },
+                        {
+                            "cidrBlocks": [
+                                "121.99.164.101/32"
+                            ],
+                            "description": "",
+                            "fromPort": 22,
+                            "ipv6CidrBlocks": [],
+                            "prefixListIds": [],
+                            "protocol": "tcp",
+                            "securityGroups": [],
+                            "self": false,
+                            "toPort": 22
+                        }
+                    ],
+                    "name": "administrator-sg-litrepublicpoc-d27f630",
+                    "namePrefix": "",
+                    "ownerId": "979803830563",
+                    "revokeRulesOnDelete": false,
+                    "tags": {},
+                    "tagsAll": {},
+                    "vpcId": "vpc-fb31c99d"
+                },
+                "parent": "urn:pulumi:web-dev::litrepublicpoc::pulumi:pulumi:Stack::litrepublicpoc-web-dev",
+                "provider": "urn:pulumi:web-dev::litrepublicpoc::pulumi:providers:aws::default_4_25_0::dbded8f4-4428-4f86-9261-a46734d0e36d",
+                "propertyDependencies": {
+                    "description": null,
+                    "egress": null,
+                    "ingress": null
+                }
+            },
+            {
+                "urn": "urn:pulumi:web-dev::litrepublicpoc::aws:ec2/instance:Instance::litrepublicpoc-www",
+                "custom": true,
+                "id": "i-0d3c24d67d976613b",
+                "type": "aws:ec2/instance:Instance",
+                "inputs": {
+                    "__defaults": [
+                        "getPasswordData",
+                        "sourceDestCheck"
+                    ],
+                    "ami": "ami-0bf8b986de7e3c7ce",
+                    "getPasswordData": false,
+                    "instanceType": "t2.micro",
+                    "keyName": "LitRepublicPoc",
+                    "sourceDestCheck": true,
+                    "tags": {
+                        "Name": "litrepublicpoc-ec2",
+                        "__defaults": []
+                    },
+                    "userData": "#!/bin/bash\n\n# Install Helm\ncurl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3\nchmod 700 get_helm.sh\n./get_helm.sh\n\n# Install K3S\ncurl -sfL https://get.k3s.io | sh -s - server --no-deploy traefik --no-deploy servicelb\n\n# Create Lit Republic namespace and context in Kubernetes\nkubectl create namespace litrepublic\nkubectl config set-context litrepublic-www --namespace=litrepublic --user=default --cluster=default\nkubectl config use-context litrepublic-www\n\n# Add Bitnami Helm chart repository for Nginx\nhelm repo add bitnami https://charts.bitnami.com/bitnami\n\necho \"\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eLit Republic WWW Test\u003c/title\u003e\u003c/head\u003e\u003cbody\u003eWell, helo thar fren!\u003c/body\u003e\u003c/html\u003e\" \u003e /home/ubuntu/index.html\n",
+                    "vpcSecurityGroupIds": [
+                        "sg-09329e5d02b32961d"
+                    ]
+                },
+                "outputs": {
+                    "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":600000000000,\"delete\":1200000000000,\"update\":600000000000},\"schema_version\":\"1\"}",
+                    "ami": "ami-0bf8b986de7e3c7ce",
+                    "arn": "arn:aws:ec2:ap-southeast-2:979803830563:instance/i-0d3c24d67d976613b",
+                    "associatePublicIpAddress": true,
+                    "availabilityZone": "ap-southeast-2a",
+                    "capacityReservationSpecification": {
+                        "capacityReservationPreference": "open",
+                        "capacityReservationTarget": null
+                    },
+                    "cpuCoreCount": 1,
+                    "cpuThreadsPerCore": 1,
+                    "creditSpecification": {
+                        "cpuCredits": "standard"
+                    },
+                    "disableApiTermination": false,
+                    "ebsBlockDevices": [],
+                    "ebsOptimized": false,
+                    "enclaveOptions": {
+                        "enabled": false
+                    },
+                    "ephemeralBlockDevices": [],
+                    "getPasswordData": false,
+                    "hibernation": false,
+                    "iamInstanceProfile": "",
+                    "id": "i-0d3c24d67d976613b",
+                    "instanceInitiatedShutdownBehavior": "stop",
+                    "instanceState": "running",
+                    "instanceType": "t2.micro",
+                    "ipv6AddressCount": 0,
+                    "ipv6Addresses": [],
+                    "keyName": "LitRepublicPoc",
+                    "launchTemplate": null,
+                    "metadataOptions": {
+                        "httpEndpoint": "enabled",
+                        "httpPutResponseHopLimit": 1,
+                        "httpTokens": "optional"
+                    },
+                    "monitoring": false,
+                    "networkInterfaces": [],
+                    "outpostArn": "",
+                    "passwordData": "",
+                    "placementGroup": "",
+                    "primaryNetworkInterfaceId": "eni-040641bf11c2aaaf2",
+                    "privateDns": "ip-172-31-37-255.ap-southeast-2.compute.internal",
+                    "privateIp": "172.31.37.255",
+                    "publicDns": "ec2-54-66-243-197.ap-southeast-2.compute.amazonaws.com",
+                    "publicIp": "54.66.243.197",
+                    "rootBlockDevice": {
+                        "deleteOnTermination": true,
+                        "deviceName": "/dev/sda1",
+                        "encrypted": false,
+                        "iops": 100,
+                        "kmsKeyId": "",
+                        "tags": {},
+                        "throughput": 0,
+                        "volumeId": "vol-0ca72abcacec65e9e",
+                        "volumeSize": 8,
+                        "volumeType": "gp2"
+                    },
+                    "secondaryPrivateIps": [],
+                    "securityGroups": [
+                        "administrator-sg-litrepublicpoc-d27f630"
+                    ],
+                    "sourceDestCheck": true,
+                    "subnetId": "subnet-fa9e43b2",
+                    "tags": {
+                        "Name": "litrepublicpoc-ec2"
+                    },
+                    "tagsAll": {
+                        "Name": "litrepublicpoc-ec2"
+                    },
+                    "tenancy": "default",
+                    "userData": "0758f2370fc9266905feb82648a960a79f869e91",
+                    "vpcSecurityGroupIds": [
+                        "sg-09329e5d02b32961d"
+                    ]
+                },
+                "parent": "urn:pulumi:web-dev::litrepublicpoc::pulumi:pulumi:Stack::litrepublicpoc-web-dev",
+                "dependencies": [
+                    "urn:pulumi:web-dev::litrepublicpoc::aws:ec2/securityGroup:SecurityGroup::administrator-sg-litrepublicpoc"
+                ],
+                "provider": "urn:pulumi:web-dev::litrepublicpoc::pulumi:providers:aws::default_4_25_0::dbded8f4-4428-4f86-9261-a46734d0e36d",
+                "propertyDependencies": {
+                    "ami": null,
+                    "instanceType": null,
+                    "keyName": null,
+                    "tags": null,
+                    "userData": null,
+                    "vpcSecurityGroupIds": [
+                        "urn:pulumi:web-dev::litrepublicpoc::aws:ec2/securityGroup:SecurityGroup::administrator-sg-litrepublicpoc"
+                    ]
+                }
+            },
+            {
+                "urn": "urn:pulumi:web-dev::litrepublicpoc::aws:ec2/instance:Instance::litrepublicpoc-www",
+                "custom": true,
+                "delete": true,
+                "id": "i-0590a4dd118932a7c",
+                "type": "aws:ec2/instance:Instance",
+                "inputs": {
+                    "__defaults": [
+                        "getPasswordData",
+                        "sourceDestCheck"
+                    ],
+                    "ami": "ami-0bf8b986de7e3c7ce",
+                    "getPasswordData": false,
+                    "instanceType": "t2.micro",
+                    "keyName": "LitRepublicPoc",
+                    "sourceDestCheck": true,
+                    "tags": {
+                        "Name": "litrepublicpoc-ec2",
+                        "__defaults": []
+                    },
+                    "userData": "#!/bin/bash\n\n# Install Helm\ncurl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3\nchmod 700 get_helm.sh\n./get_helm.sh\n\n# Add Bitnami Helm chart repository for Nginx\nhelm repo add bitnami https://charts.bitnami.com/bitnami --kube-as-user ubuntu\n\n# Install K3S\ncurl -sfL https://get.k3s.io | sh -s - server --no-deploy traefik --no-deploy servicelb\n\n# Create Lit Republic namespace and context in Kubernetes\nkubectl create namespace litrepublic\nkubectl config set-context litrepublic-www --namespace=litrepublic --user=default --cluster=default\nkubectl config use-context litrepublic-www\n\necho \"\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eLit Republic WWW Test\u003c/title\u003e\u003c/head\u003e\u003cbody\u003eWell, helo thar fren!\u003c/body\u003e\u003c/html\u003e\" \u003e /home/ubuntu/index.html\n",
+                    "vpcSecurityGroupIds": [
+                        "sg-09329e5d02b32961d"
+                    ]
+                },
+                "outputs": {
+                    "__meta": "{\"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0\":{\"create\":600000000000,\"delete\":1200000000000,\"update\":600000000000},\"schema_version\":\"1\"}",
+                    "ami": "ami-0bf8b986de7e3c7ce",
+                    "arn": "arn:aws:ec2:ap-southeast-2:979803830563:instance/i-0590a4dd118932a7c",
+                    "associatePublicIpAddress": true,
+                    "availabilityZone": "ap-southeast-2a",
+                    "capacityReservationSpecification": {
+                        "capacityReservationPreference": "open",
+                        "capacityReservationTarget": null
+                    },
+                    "cpuCoreCount": 1,
+                    "cpuThreadsPerCore": 1,
+                    "creditSpecification": {
+                        "cpuCredits": "standard"
+                    },
+                    "disableApiTermination": false,
+                    "ebsBlockDevices": [],
+                    "ebsOptimized": false,
+                    "enclaveOptions": {
+                        "enabled": false
+                    },
+                    "ephemeralBlockDevices": [],
+                    "getPasswordData": false,
+                    "hibernation": false,
+                    "iamInstanceProfile": "",
+                    "id": "i-0590a4dd118932a7c",
+                    "instanceInitiatedShutdownBehavior": "stop",
+                    "instanceState": "running",
+                    "instanceType": "t2.micro",
+                    "ipv6AddressCount": 0,
+                    "ipv6Addresses": [],
+                    "keyName": "LitRepublicPoc",
+                    "launchTemplate": null,
+                    "metadataOptions": {
+                        "httpEndpoint": "enabled",
+                        "httpPutResponseHopLimit": 1,
+                        "httpTokens": "optional"
+                    },
+                    "monitoring": false,
+                    "networkInterfaces": [],
+                    "outpostArn": "",
+                    "passwordData": "",
+                    "placementGroup": "",
+                    "primaryNetworkInterfaceId": "eni-0eb4ce7cf3bed4645",
+                    "privateDns": "ip-172-31-33-248.ap-southeast-2.compute.internal",
+                    "privateIp": "172.31.33.248",
+                    "publicDns": "ec2-3-25-187-216.ap-southeast-2.compute.amazonaws.com",
+                    "publicIp": "3.25.187.216",
+                    "rootBlockDevice": {
+                        "deleteOnTermination": true,
+                        "deviceName": "/dev/sda1",
+                        "encrypted": false,
+                        "iops": 100,
+                        "kmsKeyId": "",
+                        "tags": {},
+                        "throughput": 0,
+                        "volumeId": "vol-0b14935e65b2e7b09",
+                        "volumeSize": 8,
+                        "volumeType": "gp2"
+                    },
+                    "secondaryPrivateIps": [],
+                    "securityGroups": [
+                        "administrator-sg-litrepublicpoc-d27f630"
+                    ],
+                    "sourceDestCheck": true,
+                    "subnetId": "subnet-fa9e43b2",
+                    "tags": {
+                        "Name": "litrepublicpoc-ec2"
+                    },
+                    "tagsAll": {
+                        "Name": "litrepublicpoc-ec2"
+                    },
+                    "tenancy": "default",
+                    "userData": "43b37b704ce10748e24ccc15e66ea933dfcad998",
+                    "vpcSecurityGroupIds": [
+                        "sg-09329e5d02b32961d"
+                    ]
+                },
+                "parent": "urn:pulumi:web-dev::litrepublicpoc::pulumi:pulumi:Stack::litrepublicpoc-web-dev",
+                "dependencies": [
+                    "urn:pulumi:web-dev::litrepublicpoc::aws:ec2/securityGroup:SecurityGroup::administrator-sg-litrepublicpoc"
+                ],
+                "provider": "urn:pulumi:web-dev::litrepublicpoc::pulumi:providers:aws::default_4_25_0::dbded8f4-4428-4f86-9261-a46734d0e36d",
+                "propertyDependencies": {
+                    "ami": null,
+                    "instanceType": null,
+                    "keyName": null,
+                    "tags": null,
+                    "userData": null,
+                    "vpcSecurityGroupIds": [
+                        "urn:pulumi:web-dev::litrepublicpoc::aws:ec2/securityGroup:SecurityGroup::administrator-sg-litrepublicpoc"
+                    ]
+                }
+            }
+        ],
+        "pending_operations": [
+            
+        ]
+    }
+}
