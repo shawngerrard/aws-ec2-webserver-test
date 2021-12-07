@@ -10,20 +10,20 @@ import pulumi_kubernetes as k3s
 # Attach a label to the application for easy identification/querying
 app_labels = { "app": "nginx" }
 
-# Define a Kubernetes NGINX deployment
-deployment = k3s.apps.v1.Deployment(
-     "nginx",
-     spec={
-         "selector": { "match_labels": app_labels },
-         "replicas": 1,
-         "template": {
-             "metadata": { "labels": app_labels },
-             "spec": { "containers": [{ "name": "nginx", "image": "nginx" }] }
-         }
-     })
+# # Define a Kubernetes NGINX deployment
+# deployment = k3s.apps.v1.Deployment(
+#      "nginx",
+#      spec={
+#          "selector": { "match_labels": app_labels },
+#          "replicas": 1,
+#          "template": {
+#              "metadata": { "labels": app_labels },
+#              "spec": { "containers": [{ "name": "nginx", "image": "nginx" }] }
+#          }
+#      })
 
 # Set variable constants
-size = 't2.micro'
+size = 't3.micro'
 extip = requests.get('http://checkip.amazonaws.com/')
 
 # Define Amazon Machine Image to use
@@ -49,9 +49,9 @@ group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
 user_data = """#!/bin/bash
 
 # Install Helm
-# curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-# chmod 700 get_helm.sh
-# ./get_helm.sh
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
 
 # Install K3S
 curl -sfL https://get.k3s.io | sh -s - server --no-deploy traefik --no-deploy servicelb
@@ -62,7 +62,7 @@ kubectl config set-context litrepublic-www --namespace=litrepublic --user=defaul
 kubectl config use-context litrepublic-www
 
 # Add Bitnami Helm chart repository for Nginx
-# helm repo add bitnami https://charts.bitnami.com/bitnami
+#helm repo add bitnami https://charts.bitnami.com/bitnami
 
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
