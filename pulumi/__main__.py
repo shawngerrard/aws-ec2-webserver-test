@@ -1,11 +1,25 @@
 # Import modules
 import pulumi
-from pulumi_kubernetes.helm.v3 import Chart, ChartOpts, FetchOpts
+#from pulumi_kubernetes.helm.v3 import Chart, ChartOpts, FetchOpts
+#from pulumi_kubernetes.apps.v1 import Deployment
 import requests
 import pulumi_aws as aws
-# import * as k3s from "@pulumi/kubernetes";
-# import pulumi_kubernetes as k3s
+import pulumi_kubernetes as k3s
 
+# # Attach a label to the application for easy identification/querying
+# app_labels = { "app": "nginx" }
+
+# # Define a Kubernetes NGINX deployment
+# deployment = k3s.apps.v1.Deployment(
+#      "nginx",
+#      spec={
+#          "selector": { "match_labels": app_labels },
+#          "replicas": 1,
+#          "template": {
+#              "metadata": { "labels": app_labels },
+#              "spec": { "containers": [{ "name": "nginx", "image": "nginx" }] }
+#          }
+#      })
 
 # Set variable constants
 size = 't2.micro'
@@ -83,6 +97,10 @@ server = aws.ec2.Instance('litrepublicpoc-www',
 # Export the public IP and hostname of the Amazon server to output
 pulumi.export('publicIp', server.public_ip)
 pulumi.export('publicHostName', server.public_dns)
+
+# Export the deployment name
+#pulumi.export("name", deployment.metadata["name"])
+
 
 # STEPS
 # Install Pulumi
