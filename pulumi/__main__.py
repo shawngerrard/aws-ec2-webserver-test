@@ -1,11 +1,12 @@
-# configured Kubernetes cluster is unreachable: unable to load Kubernetes client configuration from kubeconfig file: invalid configuration: no configuration has been provided, try setting KUBERNETES_MASTER environment variable
 # Import modules
 import pulumi
-#from pulumi_kubernetes.helm.v3 import Chart, ChartOpts, FetchOpts
+from pulumi_kubernetes.helm.v3 import Chart, ChartOpts, FetchOpts
 #from pulumi_kubernetes.apps.v1 import Deployment
 import requests
 import pulumi_aws as aws
 import pulumi_kubernetes as k3s
+import provisioners
+
 
 # Attach a label to the application for easy identification/querying
 app_labels = { "app": "nginx" }
@@ -61,25 +62,8 @@ kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www
 
-# Add Bitnami Helm chart repository for Nginx
-#helm repo add bitnami https://charts.bitnami.com/bitnami
-
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
-
-# Define the NGINX Ingress Controller to be deployed through Helm
-# nginx_ingress = Chart(
-#     "nginx-ingress",
-#     ChartOpts(
-#         chart="nginx-ingress-controller",
-#         version="1.24.4",
-#         namespace="litrepublic",
-#         fetch_opts=FetchOpts(
-#             repo="https://charts.bitnami.com/bitnami",
-#         ),
-#     ),
-# )
-
 
 # Define the AWS EC2 instance to start
 server = aws.ec2.Instance('litrepublicpoc-www',
@@ -91,7 +75,29 @@ server = aws.ec2.Instance('litrepublicpoc-www',
     tags={
         "Name":"litrepublicpoc-ec2"
     })
-    
+
+key = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
+
+conn = provisioners.ConnectionArgs(
+    host=server.public_ip,
+    username='ubuntu',
+    private_key=key.read(),
+)
+
+# # Copy a config file to our server.
+# cp_config = provisioners.CopyFile('config',
+#     conn=conn,
+#     src='/etc/rancher/k3s/k3s.yaml',
+#     dest='~/.kube/config',
+#     opts=pulumi.ResourceOptions(depends_on=[server]),
+# )
+
+# Execute a basic command on our server.
+cat_config = provisioners.RemoteExec('cat-config',
+    conn=conn,
+    commands=['helm repo add bitnami https://charts.bitnami.com/bitnami'],
+)
+
 # Current connection string:
 # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2 --query 'Reservations[].Instances[].PublicDnsName' --output text`
 
@@ -99,6 +105,18 @@ server = aws.ec2.Instance('litrepublicpoc-www',
 pulumi.export('publicIp', server.public_ip)
 pulumi.export('publicHostName', server.public_dns)
 
+# Define the NGINX Ingress Controller to be deployed through Helm
+# nginx_ingress = Chart(
+#     "nginx-ingress",
+#     ChartOpts(
+#         chart="nginx-ingress-controller",
+#         version="9.0.9",
+#         namespace="litrepublic",
+#         fetch_opts=FetchOpts(
+#             repo="https://charts.bitnami.com/bitnami",
+#         ),
+#     ),
+# )
 # Export the deployment name
 #pulumi.export("name", deployment.metadata["name"])
 
