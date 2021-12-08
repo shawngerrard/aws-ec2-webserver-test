@@ -7,7 +7,6 @@ import pulumi_aws as aws
 import pulumi_kubernetes as k3s
 import provisioners
 
-
 # Attach a label to the application for easy identification/querying
 app_labels = { "app": "nginx" }
 
