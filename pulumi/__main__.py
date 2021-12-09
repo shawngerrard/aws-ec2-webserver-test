@@ -54,7 +54,7 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 
 # Install K3S
-curl -sfL https://get.k3s.io | sh -s - server --no-deploy traefik --no-deploy servicelb
+curl -sfL https://get.k3s.io | sh -s - server_master --no-deploy traefik --no-deploy servicelb
 
 # Create Lit Republic namespace and context in Kubernetes
 kubectl create namespace litrepublic
@@ -65,20 +65,20 @@ echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo th
 """
 
 # Define the AWS EC2 instance to start
-server = aws.ec2.Instance('litrepublicpoc-www-dev-controller',
-    instance_type=size,
+server_master = aws.ec2.Instance('litrepublicpoc-www-dev-controller',
+    server_master_type=size,
     vpc_security_group_ids=[group.id], 
     user_data=user_data,
     ami=ami.id,
     key_name='LitRepublicPoc',
     tags={
-        "Name":"litrepublicpoc-ec2"
+        "Name":"litrepublicpoc-ec2-master"
     })
 
 key = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
 
 conn = provisioners.ConnectionArgs(
-    host=server.public_ip,
+    host=server_master.public_ip,
     username='ubuntu',
     private_key=key.read()
 )
@@ -87,7 +87,7 @@ conn = provisioners.ConnectionArgs(
 cat_config = provisioners.RemoteExec('cat-config',
     conn=conn,
     commands=[
-        'sleep 10s',
+        'sleep 7s',
         'helm repo add bitnami https://charts.bitnami.com/bitnami',
         'echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> ~/.bashrc && . ~/.bashrc'
     ]
@@ -97,8 +97,8 @@ cat_config = provisioners.RemoteExec('cat-config',
 # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2 --query 'Reservations[].Instances[].PublicDnsName' --output text`
 
 # Export the public IP and hostname of the Amazon server to output
-pulumi.export('publicIp', server.public_ip)
-pulumi.export('publicHostName', server.public_dns)
+pulumi.export('publicIp', server_master.public_ip)
+pulumi.export('publicHostName', server_master.public_dns)
 
 # Define the NGINX Ingress Controller to be deployed through Helm
 # Note: No longer needed due to remote execution of Helm repository?
