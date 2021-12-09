@@ -86,7 +86,11 @@ conn = provisioners.ConnectionArgs(
 # Execute the commands on the new instance
 cat_config = provisioners.RemoteExec('cat-config',
     conn=conn,
-    commands=['sleep 10s','helm repo add bitnami https://charts.bitnami.com/bitnami']
+    commands=[
+        'sleep 10s',
+        'helm repo add bitnami https://charts.bitnami.com/bitnami',
+        'echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> ~/.bashrc && . ~/.bashrc'
+    ]
 )
 
 # Current connection string:
