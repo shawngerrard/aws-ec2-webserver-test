@@ -8,7 +8,7 @@ import pulumi_kubernetes as k3s
 import provisioners
 
 # Attach a label to the application for easy identification/querying
-app_labels = { "app": "nginx" }
+#app_labels = { "app": "nginx" }
 
 # # Define a Kubernetes NGINX deployment
 # deployment = k3s.apps.v1.Deployment(
@@ -32,7 +32,7 @@ ami = aws.ec2.get_ami(most_recent="true",
                   filters=[{"name":"image-id","values":["ami-0bf8b986de7e3c7ce"]}])
 
 # Define administrator security group to allow SSH & HTTP access
-group = aws.ec2.SecurityGroup('administrator-sg-litrepublicpoc',
+group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
     description='Enable SSH and HTTP access for Lit Republic',
     ingress=[
         { 'protocol': 'tcp', 'from_port': 22, 'to_port': 22, 'cidr_blocks': [extip.text.strip()+'/32'] },
@@ -80,21 +80,13 @@ key = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
 conn = provisioners.ConnectionArgs(
     host=server.public_ip,
     username='ubuntu',
-    private_key=key.read(),
+    private_key=key.read()
 )
 
-# # Copy a config file to our server.
-# cp_config = provisioners.CopyFile('config',
-#     conn=conn,
-#     src='/etc/rancher/k3s/k3s.yaml',
-#     dest='~/.kube/config',
-#     opts=pulumi.ResourceOptions(depends_on=[server]),
-# )
-
-# Execute a basic command on our server.
+# Execute the commands on the new instance
 cat_config = provisioners.RemoteExec('cat-config',
     conn=conn,
-    commands=['helm repo add bitnami https://charts.bitnami.com/bitnami'],
+    commands=['sleep 10s','helm repo add bitnami https://charts.bitnami.com/bitnami']
 )
 
 # Current connection string:
@@ -105,6 +97,7 @@ pulumi.export('publicIp', server.public_ip)
 pulumi.export('publicHostName', server.public_dns)
 
 # Define the NGINX Ingress Controller to be deployed through Helm
+# Note: No longer needed due to remote execution of Helm repository?
 # nginx_ingress = Chart(
 #     "nginx-ingress",
 #     ChartOpts(
@@ -116,12 +109,20 @@ pulumi.export('publicHostName', server.public_dns)
 #         ),
 #     ),
 # )
-# Export the deployment name
-#pulumi.export("name", deployment.metadata["name"])
+
+# Output the deployment name
+# pulumi.export("name", deployment.metadata["name"])
 
 
+#-------
 # STEPS
+#-------
 # Install Pulumi
+# Install dependencies for the Provisioner module
+    # Install paramiko
+        # pip install paramiko
+    # Install typing_extensions
+        # pip install typing_extensions
 # Create Pulumi project
 # Create a virtual environment and install dependencies
     # create virtual env
