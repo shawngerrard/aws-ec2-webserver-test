@@ -54,19 +54,19 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 
 # Install K3S
-curl -sfL https://get.k3s.io | sh -s - server_master --no-deploy traefik --no-deploy servicelb
+curl -sfL https://get.k3s.io | sh -s - server --no-deploy traefik --no-deploy servicelb
 
 # Create Lit Republic namespace and context in Kubernetes
 kubectl create namespace litrepublic
-kubectl config set-context litrepublic-www --namespace=litrepublic --user=default --cluster=default
-kubectl config use-context litrepublic-www
+kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
+kubectl config use-context litrepublic-www-dev
 
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
 
 # Define the AWS EC2 instance to start
-server_master = aws.ec2.Instance('litrepublicpoc-www-dev-controller',
-    server_master_type=size,
+server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
+    instance_type=size,
     vpc_security_group_ids=[group.id], 
     user_data=user_data,
     ami=ami.id,
