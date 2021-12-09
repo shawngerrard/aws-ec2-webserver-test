@@ -65,7 +65,7 @@ echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo th
 """
 
 # Define the AWS EC2 instance to start
-server = aws.ec2.Instance('litrepublicpoc-www',
+server = aws.ec2.Instance('litrepublicpoc-www-dev-controller',
     instance_type=size,
     vpc_security_group_ids=[group.id], 
     user_data=user_data,
