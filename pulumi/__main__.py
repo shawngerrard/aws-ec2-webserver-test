@@ -37,12 +37,14 @@ group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
     ingress=[
         { 'protocol': 'tcp', 'from_port': 22, 'to_port': 22, 'cidr_blocks': [extip.text.strip()+'/32'] },
         { 'protocol': 'tcp', 'from_port': 80, 'to_port': 80, 'cidr_blocks': ['0.0.0.0/0'] },
-        { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] }
+        { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] },
+        { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] }
     ],
     egress=[
         { 'protocol': 'tcp', 'from_port': 22, 'to_port': 22, 'cidr_blocks': [extip.text.strip()+'/32'] },
         { 'protocol': 'tcp', 'from_port': 80, 'to_port': 80, 'cidr_blocks': ['0.0.0.0/0'] },
-        { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] }
+        { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] },
+        { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] }
     ])
 
 # Define the instance start-up scripting
@@ -54,7 +56,7 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 
 # Install K3S
-curl -sfL https://get.k3s.io | sh -s - server --no-deploy traefik --no-deploy servicelb
+curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
 
 # Create Lit Republic namespace and context in Kubernetes
 kubectl create namespace litrepublic
@@ -83,13 +85,21 @@ conn = provisioners.ConnectionArgs(
     private_key=key.read()
 )
 
+# TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
+# Is there a Pulumi native way to achieve this?
+
+
 # Execute the commands on the new instance
 cat_config = provisioners.RemoteExec('cat-config',
     conn=conn,
     commands=[
         'sleep 7s',
         'helm repo add bitnami https://charts.bitnami.com/bitnami',
-        'echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> ~/.bashrc && . ~/.bashrc'
+        'mkdir -p ~/.kube',
+        'sleep 10s',
+        'ls -la /etc/rancher/k3s',
+        'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
+        'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller'
     ]
 )
 
@@ -135,10 +145,15 @@ pulumi.export('publicHostName', server_master.public_dns)
         # sudo pip3 install wheel --upgrade 
     # install deps
         # venv/bin/pip install -r requirements.txt
-# Modify __main__.py with deployment attributes (UserData)
-# 
-# Create EC2 instance
-# Check if Traefik installed on instance
-    # sudo kubectl get deployments -n kube-system
-    # Uninstall Traefik
-# ensure wheel is up to date before 
+# Run Pulumi Up
+# SSH
+    # verify installation
+# SCP kubeconfig file from ec2 to local
+    # update kubeconfig file with external ip of ec2
+# install kubectl
+# verifying kubectl install
+    # remove TLS certificate check from node
+        # kubectl --version 
+        # kubectl get nodes --insecure-skip-tls-verify
+# Deploy wordpress
+    # Use set to configure wordpress
