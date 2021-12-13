@@ -99,7 +99,7 @@ cat_config = provisioners.RemoteExec('cat-config',
         'sleep 10s',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
-        'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller -n litrepublic-www-dev',
+        'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
         'sleep 10s'
     ]
 )
