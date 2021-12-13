@@ -59,9 +59,9 @@ chmod 700 get_helm.sh
 curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
 
 # Create Lit Republic namespace and context in Kubernetes
-kubectl create namespace litrepublic
-kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
-kubectl config use-context litrepublic-www-dev
+#kubectl create namespace litrepublic
+#kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
+#kubectl config use-context litrepublic-www-dev
 
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
@@ -99,7 +99,7 @@ cat_config = provisioners.RemoteExec('cat-config',
         'sleep 10s',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
-        'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
+        'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller -n litrepublic-www-dev',
         'sleep 10s'
     ]
 )
