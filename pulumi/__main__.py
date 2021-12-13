@@ -157,4 +157,4 @@ pulumi.export('publicHostName', server_master.public_dns)
         # kubectl --version
         # kubectl get nodes --insecure-skip-tls-verify
 # Deploy wordpress
-    # Use set to configure wordpress
+    # Use 'set' option in helm install to configure wordpress
