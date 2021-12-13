@@ -99,7 +99,8 @@ cat_config = provisioners.RemoteExec('cat-config',
         'sleep 10s',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
-        'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller'
+        'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
+        'sleep 10s'
     ]
 )
 
@@ -153,7 +154,7 @@ pulumi.export('publicHostName', server_master.public_dns)
 # install kubectl
 # verifying kubectl install
     # remove TLS certificate check from node
-        # kubectl --version 
+        # kubectl --version
         # kubectl get nodes --insecure-skip-tls-verify
 # Deploy wordpress
     # Use set to configure wordpress
