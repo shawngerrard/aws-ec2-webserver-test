@@ -32,7 +32,7 @@ ami = aws.ec2.get_ami(most_recent="true",
                   filters=[{"name":"image-id","values":["ami-0bf8b986de7e3c7ce"]}])
 
 # Define administrator security group to allow SSH & HTTP access
-group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
+admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
     description='Enable SSH and HTTP access for Lit Republic',
     ingress=[
         { 'protocol': 'tcp', 'from_port': 22, 'to_port': 22, 'cidr_blocks': [extip.text.strip()+'/32'] },
@@ -48,7 +48,7 @@ group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
     ])
 
 # Define the instance start-up scripting
-user_data = """#!/bin/bash
+server_master_user_data = """#!/bin/bash
 
 # Install Helm
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
@@ -69,8 +69,8 @@ echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo th
 # Define the AWS EC2 instance to start
 server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     instance_type=size,
-    vpc_security_group_ids=[group.id], 
-    user_data=user_data,
+    vpc_security_group_ids=[admin_group.id], 
+    user_data=server_master_user_data,
     ami=ami.id,
     key_name='LitRepublicPoc',
     tags={
