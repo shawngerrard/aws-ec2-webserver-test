@@ -66,7 +66,7 @@ kubectl config use-context litrepublic-www-dev
 echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
 
-# Define the AWS EC2 instance to start
+# Define out master node as an AWS EC2 instance
 server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     instance_type=size,
     vpc_security_group_ids=[admin_group.id], 
@@ -77,8 +77,10 @@ server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
         "Name":"litrepublicpoc-ec2-master"
     })
 
+# Obtain the private key to use
 key = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
 
+# Configure provisioner connection string to master node
 conn_master = provisioners.ConnectionArgs(
     host=server_master.public_ip,
     username='ubuntu',
@@ -88,10 +90,10 @@ conn_master = provisioners.ConnectionArgs(
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
 # Is there a Pulumi native way to achieve this?
 
-
-# Execute the commands on the new instance
+# Execute commands to configure the master node using the provisioner module
 server_master_config = provisioners.RemoteExec('server_master_config',
     conn=conn_master,
+    opts=pulumi.ResourceOptions(depends_on=[server_master]),
     commands=[
         'sleep 7s',
         'helm repo add bitnami https://charts.bitnami.com/bitnami',
@@ -100,6 +102,7 @@ server_master_config = provisioners.RemoteExec('server_master_config',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
         'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
+        'echo hello',
         'sleep 10s'
     ]
 )
