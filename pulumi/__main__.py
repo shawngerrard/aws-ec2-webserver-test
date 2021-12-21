@@ -69,18 +69,8 @@ echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>W
 # Define the instance start-up scripting for the first worker
 worker1_user_data = """#!/bin/bash
 
-# Install Helm
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-
 # Install K3S
 curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
-
-# Create Lit Republic namespace and context in Kubernetes
-kubectl create namespace litrepublic
-kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
-kubectl config use-context litrepublic-www-dev
 
 echo "<html><head><title>Lit Republic WWW Test - Worker 1</title></head><body><p>Well, helo thar fren!</p><p>From Worker 1</p></body></html>" > /home/ubuntu/index.html
 """
