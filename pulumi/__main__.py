@@ -47,7 +47,7 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
         { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] }
     ])
 
-# Define the instance start-up scripting
+# Define the instance start-up scripting for the master server
 server_master_user_data = """#!/bin/bash
 
 # Install Helm
@@ -63,10 +63,38 @@ kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www-dev
 
-echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
+echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Master</p></body></html>" > /home/ubuntu/index.html
 """
 
-# Define out master node as an AWS EC2 instance
+# Define the instance start-up scripting for the first worker
+worker1_user_data = """#!/bin/bash
+
+# Install Helm
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+# Install K3S
+curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
+
+# Create Lit Republic namespace and context in Kubernetes
+kubectl create namespace litrepublic
+kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
+kubectl config use-context litrepublic-www-dev
+
+echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Worker 1</p></body></html>" > /home/ubuntu/index.html
+"""
+
+# Define the instance start-up scripting for the second worker
+worker2_user_data = """#!/bin/bash
+
+# Install K3S
+curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
+
+echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Worker 2</p></body></html>" > /home/ubuntu/index.html
+"""
+
+# Define our master node as an AWS EC2 instance
 server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     instance_type=size,
     vpc_security_group_ids=[admin_group.id], 
@@ -75,6 +103,28 @@ server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     key_name='LitRepublicPoc',
     tags={
         "Name":"litrepublicpoc-ec2-master"
+    })
+
+# Define our worker node as an AWS EC2 instance
+worker_1 = aws.ec2.Instance('litrepublicpoc-www-dev-worker1',
+    instance_type=size,
+    vpc_security_group_ids=[admin_group.id], 
+    user_data=worker1_user_data,
+    ami=ami.id,
+    key_name='LitRepublicPoc',
+    tags={
+        "Name":"litrepublicpoc-ec2-worker1"
+    })
+
+# Define another worker node as an AWS EC2 instance
+worker_2 = aws.ec2.Instance('litrepublicpoc-www-dev-worker2',
+    instance_type=size,
+    vpc_security_group_ids=[admin_group.id], 
+    user_data=worker2_user_data,
+    ami=ami.id,
+    key_name='LitRepublicPoc',
+    tags={
+        "Name":"litrepublicpoc-ec2-worker2"
     })
 
 # Obtain the private key to use
