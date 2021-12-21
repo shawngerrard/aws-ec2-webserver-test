@@ -66,23 +66,23 @@ kubectl config use-context litrepublic-www-dev
 echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Master</p></body></html>" > /home/ubuntu/index.html
 """
 
-# Define the instance start-up scripting for the first worker
-worker1_user_data = """#!/bin/bash
+# # Define the instance start-up scripting for the first worker
+# worker1_user_data = """#!/bin/bash
 
-# Install K3S
-curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
+# # Install K3S
+# curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
 
-echo "<html><head><title>Lit Republic WWW Test - Worker 1</title></head><body><p>Well, helo thar fren!</p><p>From Worker 1</p></body></html>" > /home/ubuntu/index.html
-"""
+# echo "<html><head><title>Lit Republic WWW Test - Worker 1</title></head><body><p>Well, helo thar fren!</p><p>From Worker 1</p></body></html>" > /home/ubuntu/index.html
+# """
 
-# Define the instance start-up scripting for the second worker
-worker2_user_data = """#!/bin/bash
+# # Define the instance start-up scripting for the second worker
+# worker2_user_data = """#!/bin/bash
 
-# Install K3S
-curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
+# # Install K3S
+# curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
 
-echo "<html><head><title>Lit Republic WWW Test - Worker 2</title></head><body><p>Well, helo thar fren!</p><p>From Worker 2</p></body></html>" > /home/ubuntu/index.html
-"""
+# echo "<html><head><title>Lit Republic WWW Test - Worker 2</title></head><body><p>Well, helo thar fren!</p><p>From Worker 2</p></body></html>" > /home/ubuntu/index.html
+# """
 
 # Define our master node as an AWS EC2 instance
 server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
@@ -95,27 +95,27 @@ server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
         "Name":"litrepublicpoc-ec2-master"
     })
 
-# Define our worker node as an AWS EC2 instance
-worker_1 = aws.ec2.Instance('litrepublicpoc-www-dev-worker1',
-    instance_type=size,
-    vpc_security_group_ids=[admin_group.id], 
-    user_data=worker1_user_data,
-    ami=ami.id,
-    key_name='LitRepublicPoc',
-    tags={
-        "Name":"litrepublicpoc-ec2-worker1"
-    })
+# # Define our worker node as an AWS EC2 instance
+# worker_1 = aws.ec2.Instance('litrepublicpoc-www-dev-worker1',
+#     instance_type=size,
+#     vpc_security_group_ids=[admin_group.id], 
+#     user_data=worker1_user_data,
+#     ami=ami.id,
+#     key_name='LitRepublicPoc',
+#     tags={
+#         "Name":"litrepublicpoc-ec2-worker1"
+#     })
 
-# Define another worker node as an AWS EC2 instance
-worker_2 = aws.ec2.Instance('litrepublicpoc-www-dev-worker2',
-    instance_type=size,
-    vpc_security_group_ids=[admin_group.id], 
-    user_data=worker2_user_data,
-    ami=ami.id,
-    key_name='LitRepublicPoc',
-    tags={
-        "Name":"litrepublicpoc-ec2-worker2"
-    })
+# # Define another worker node as an AWS EC2 instance
+# worker_2 = aws.ec2.Instance('litrepublicpoc-www-dev-worker2',
+#     instance_type=size,
+#     vpc_security_group_ids=[admin_group.id], 
+#     user_data=worker2_user_data,
+#     ami=ami.id,
+#     key_name='LitRepublicPoc',
+#     tags={
+#         "Name":"litrepublicpoc-ec2-worker2"
+#     })
 
 # Obtain the private key to use
 key = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
@@ -142,7 +142,7 @@ server_master_config = provisioners.RemoteExec('server_master_config',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
         'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
-        'echo hello',
+        'export TEST="Leshhh Gooooo!"',
         'sleep 10s'
     ]
 )
