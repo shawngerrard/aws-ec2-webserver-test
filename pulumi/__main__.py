@@ -82,7 +82,7 @@ kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www-dev
 
-echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Worker 1</p></body></html>" > /home/ubuntu/index.html
+echo "<html><head><title>Lit Republic WWW Test - Worker 1</title></head><body><p>Well, helo thar fren!</p><p>From Worker 1</p></body></html>" > /home/ubuntu/index.html
 """
 
 # Define the instance start-up scripting for the second worker
@@ -91,7 +91,7 @@ worker2_user_data = """#!/bin/bash
 # Install K3S
 curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
 
-echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Worker 2</p></body></html>" > /home/ubuntu/index.html
+echo "<html><head><title>Lit Republic WWW Test - Worker 2</title></head><body><p>Well, helo thar fren!</p><p>From Worker 2</p></body></html>" > /home/ubuntu/index.html
 """
 
 # Define our master node as an AWS EC2 instance
