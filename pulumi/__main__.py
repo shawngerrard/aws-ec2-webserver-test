@@ -131,11 +131,11 @@ conn_master = provisioners.ConnectionArgs(
 # Is there a Pulumi native way to achieve this?
 
 # Execute commands to configure the master node using the provisioner module
+#opts=pulumi.ResourceOptions(depends_on=[server_master]),
 server_master_config = provisioners.RemoteExec('server_master_config',
     conn=conn_master,
-    opts=pulumi.ResourceOptions(depends_on=[server_master]),
     commands=[
-        'sleep 7s',
+        'sleep 10s',
         'helm repo add bitnami https://charts.bitnami.com/bitnami',
         'mkdir -p ~/.kube',
         'sleep 10s',
@@ -154,21 +154,7 @@ server_master_config = provisioners.RemoteExec('server_master_config',
 pulumi.export('publicIp', server_master.public_ip)
 pulumi.export('publicHostName', server_master.public_dns)
 
-# Define the NGINX Ingress Controller to be deployed through Helm
-# Note: No longer needed due to remote execution of Helm repository?
-# nginx_ingress = Chart(
-#     "nginx-ingress",
-#     ChartOpts(
-#         chart="nginx-ingress-controller",
-#         version="9.0.9",
-#         namespace="litrepublic",
-#         fetch_opts=FetchOpts(
-#             repo="https://charts.bitnami.com/bitnami",
-#         ),
-#     ),
-# )
-
-# Output the deployment name
+# Export the deployment name to output
 # pulumi.export("name", deployment.metadata["name"])
 
 
