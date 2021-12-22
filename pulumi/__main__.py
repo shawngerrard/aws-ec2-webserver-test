@@ -63,8 +63,8 @@ kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www-dev
 
-echo TEST="Leshhh Gooooo!" >> sudo /etc/environment
-source /etc/environment
+# Create K3S environment variables
+echo export TEST=\""Test Worked"\" | /etc/profile.d/vars.sh
 
 echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Master</p></body></html>" > /home/ubuntu/index.html
 """
@@ -145,9 +145,14 @@ server_master_config = provisioners.RemoteExec('server_master_config',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
         'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
+        'sudo chown $(whoami) /etc/profile.d/vars.sh',
+        'source /etc/profile',
         'sleep 10s'
     ]
 )
+
+#'sudo echo export TEST=\""LESHHH GOOOOO!"\" > /etc/environment',
+#        'source /etc/environment',
 
 # Current connection string:
 # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2 --query 'Reservations[].Instances[].PublicDnsName' --output text`
