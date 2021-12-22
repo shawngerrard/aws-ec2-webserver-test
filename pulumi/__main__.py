@@ -64,7 +64,7 @@ kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=de
 kubectl config use-context litrepublic-www-dev
 
 # Create K3S environment variables
-echo export TEST=\""Test Worked"\" | /etc/profile.d/vars.sh
+echo 'export TEST="Test Worked"' | sudo tee /etc/profile.d/vars.sh
 
 echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Master</p></body></html>" > /home/ubuntu/index.html
 """
@@ -145,7 +145,7 @@ server_master_config = provisioners.RemoteExec('server_master_config',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
         'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
-        'sudo chown $(whoami) /etc/profile.d/vars.sh',
+        'sudo chown ubuntu /etc/profile.d/vars.sh',
         'source /etc/profile',
         'sleep 10s'
     ]
