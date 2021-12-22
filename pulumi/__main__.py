@@ -145,7 +145,6 @@ server_master_config = provisioners.RemoteExec('server_master_config',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
         'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
-        'sudo chown ubuntu /etc/profile.d/vars.sh',
         'source /etc/profile',
         'sleep 10s'
     ]
