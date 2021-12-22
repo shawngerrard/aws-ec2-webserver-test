@@ -63,7 +63,9 @@ kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www-dev
 
-# Create K3S environment variables - TESTING CURRENTLY
+# SCP K3S token here <<<----------
+
+# Create global K3S environment variables - TESTING PURPOSES
 echo 'TEST="Test Worked"' | sudo tee -a /etc/environment
 
 echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Master</p></body></html>" > /home/ubuntu/index.html
