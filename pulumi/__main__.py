@@ -63,12 +63,12 @@ kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www-dev
 
-# Create K3S environment variables
-echo 'export TEST="Test Worked"' | sudo tee /etc/profile.d/vars.sh
+# Create K3S environment variables - TESTING CURRENTLY
+echo 'TEST="Test Worked"' | sudo tee -a /etc/environment
 
 echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Master</p></body></html>" > /home/ubuntu/index.html
 """
-
+#echo 'export TEST="Test Worked"' | sudo tee /etc/profile.d/vars.sh
 # # Define the instance start-up scripting for the first worker
 # worker1_user_data = """#!/bin/bash
 
@@ -145,7 +145,6 @@ server_master_config = provisioners.RemoteExec('server_master_config',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
         'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
-        'source /etc/profile',
         'sleep 10s'
     ]
 )
