@@ -50,6 +50,9 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
 # Define the instance start-up scripting for the master server
 server_master_user_data = """#!/bin/bash
 
+# Setup folder structure
+mkdir ~/Documents
+
 # Install Helm
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 chmod 700 get_helm.sh
@@ -63,12 +66,17 @@ kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www-dev
 
-# SCP K3S token here <<<----------
+# Create file with K3S token
+sudo cp /var/lib/rancher/k3s/server/node-token ~/Documents/node-token
+
+# Copy node token file to local filesystem
+sudo scp -r ~/Documents/node-token shawn@""" + extip + """:~/.kube/node-token
 
 # Create global K3S environment variables - TESTING PURPOSES
 echo 'TEST="Test Worked"' | sudo tee -a /etc/environment
 
-echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Master</p></body></html>" > /home/ubuntu/index.html
+# Create a test HTMl file
+echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Master</p></body></html>" > /home/ubuntu/Documents/index.html
 """
 #echo 'export TEST="Test Worked"' | sudo tee /etc/profile.d/vars.sh
 # # Define the instance start-up scripting for the first worker
@@ -194,3 +202,6 @@ pulumi.export('publicHostName', server_master.public_dns)
         # kubectl get nodes --insecure-skip-tls-verify
 # Deploy wordpress
     # Use 'set' option in helm install to configure wordpress
+
+
+    ###sudo scp ~/Documents/node-token shawn@121.99.164.101:~/.kube/node-token
