@@ -94,7 +94,7 @@ conn_master = provisioners.ConnectionArgs(
 server_master_config = provisioners.RemoteExec('server_master_config',
     conn=conn_master,
     commands=[
-        'sleep 7s',
+        'sleep 10s',
         'helm repo add bitnami https://charts.bitnami.com/bitnami',
         'mkdir -p ~/.kube',
         'sleep 10s',
