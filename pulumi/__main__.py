@@ -47,11 +47,8 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
         { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] }
     ])
 
-# Define the instance start-up scripting for the master server
+# Define the instance start-up scripting
 server_master_user_data = """#!/bin/bash
-
-# Setup folder structure
-mkdir ~/Documents
 
 # Install Helm
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
@@ -66,38 +63,10 @@ kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www-dev
 
-# Create file with K3S token
-sudo cp /var/lib/rancher/k3s/server/node-token ~/Documents/node-token
-
-# Copy node token file to local filesystem
-sudo scp -r ~/Documents/node-token shawn@""" + extip + """:~/.kube/node-token
-
-# Create global K3S environment variables - TESTING PURPOSES
-echo 'TEST="Test Worked"' | sudo tee -a /etc/environment
-
-# Create a test HTMl file
-echo "<html><head><title>Lit Republic WWW Test - Master</title></head><body><p>Well, helo thar fren!</p><p>From Master</p></body></html>" > /home/ubuntu/Documents/index.html
+echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
-#echo 'export TEST="Test Worked"' | sudo tee /etc/profile.d/vars.sh
-# # Define the instance start-up scripting for the first worker
-# worker1_user_data = """#!/bin/bash
 
-# # Install K3S
-# curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
-
-# echo "<html><head><title>Lit Republic WWW Test - Worker 1</title></head><body><p>Well, helo thar fren!</p><p>From Worker 1</p></body></html>" > /home/ubuntu/index.html
-# """
-
-# # Define the instance start-up scripting for the second worker
-# worker2_user_data = """#!/bin/bash
-
-# # Install K3S
-# curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
-
-# echo "<html><head><title>Lit Republic WWW Test - Worker 2</title></head><body><p>Well, helo thar fren!</p><p>From Worker 2</p></body></html>" > /home/ubuntu/index.html
-# """
-
-# Define our master node as an AWS EC2 instance
+# Define out master node as an AWS EC2 instance
 server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     instance_type=size,
     vpc_security_group_ids=[admin_group.id], 
@@ -107,28 +76,6 @@ server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     tags={
         "Name":"litrepublicpoc-ec2-master"
     })
-
-# # Define our worker node as an AWS EC2 instance
-# worker_1 = aws.ec2.Instance('litrepublicpoc-www-dev-worker1',
-#     instance_type=size,
-#     vpc_security_group_ids=[admin_group.id], 
-#     user_data=worker1_user_data,
-#     ami=ami.id,
-#     key_name='LitRepublicPoc',
-#     tags={
-#         "Name":"litrepublicpoc-ec2-worker1"
-#     })
-
-# # Define another worker node as an AWS EC2 instance
-# worker_2 = aws.ec2.Instance('litrepublicpoc-www-dev-worker2',
-#     instance_type=size,
-#     vpc_security_group_ids=[admin_group.id], 
-#     user_data=worker2_user_data,
-#     ami=ami.id,
-#     key_name='LitRepublicPoc',
-#     tags={
-#         "Name":"litrepublicpoc-ec2-worker2"
-#     })
 
 # Obtain the private key to use
 key = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
@@ -144,23 +91,20 @@ conn_master = provisioners.ConnectionArgs(
 # Is there a Pulumi native way to achieve this?
 
 # Execute commands to configure the master node using the provisioner module
-#opts=pulumi.ResourceOptions(depends_on=[server_master]),
 server_master_config = provisioners.RemoteExec('server_master_config',
     conn=conn_master,
     commands=[
-        'sleep 10s',
+        'sleep 7s',
         'helm repo add bitnami https://charts.bitnami.com/bitnami',
         'mkdir -p ~/.kube',
-        'sleep 20s',
+        'sleep 10s',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
         'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
+        'echo hello',
         'sleep 10s'
     ]
 )
-
-#'sudo echo export TEST=\""LESHHH GOOOOO!"\" > /etc/environment',
-#        'source /etc/environment',
 
 # Current connection string:
 # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2 --query 'Reservations[].Instances[].PublicDnsName' --output text`
@@ -169,7 +113,21 @@ server_master_config = provisioners.RemoteExec('server_master_config',
 pulumi.export('publicIp', server_master.public_ip)
 pulumi.export('publicHostName', server_master.public_dns)
 
-# Export the deployment name to output
+# Define the NGINX Ingress Controller to be deployed through Helm
+# Note: No longer needed due to remote execution of Helm repository?
+# nginx_ingress = Chart(
+#     "nginx-ingress",
+#     ChartOpts(
+#         chart="nginx-ingress-controller",
+#         version="9.0.9",
+#         namespace="litrepublic",
+#         fetch_opts=FetchOpts(
+#             repo="https://charts.bitnami.com/bitnami",
+#         ),
+#     ),
+# )
+
+# Output the deployment name
 # pulumi.export("name", deployment.metadata["name"])
 
 
@@ -202,6 +160,3 @@ pulumi.export('publicHostName', server_master.public_dns)
         # kubectl get nodes --insecure-skip-tls-verify
 # Deploy wordpress
     # Use 'set' option in helm install to configure wordpress
-
-
-    ###sudo scp ~/Documents/node-token shawn@121.99.164.101:~/.kube/node-token
