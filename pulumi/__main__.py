@@ -1,26 +1,8 @@
 # Import modules
 import pulumi
-from pulumi_kubernetes.helm.v3 import Chart, ChartOpts, FetchOpts
-#from pulumi_kubernetes.apps.v1 import Deployment
 import requests
 import pulumi_aws as aws
-import pulumi_kubernetes as k3s
 import provisioners
-
-# Attach a label to the application for easy identification/querying
-#app_labels = { "app": "nginx" }
-
-# # Define a Kubernetes NGINX deployment
-# deployment = k3s.apps.v1.Deployment(
-#      "nginx",
-#      spec={
-#          "selector": { "match_labels": app_labels },
-#          "replicas": 1,
-#          "template": {
-#              "metadata": { "labels": app_labels },
-#              "spec": { "containers": [{ "name": "nginx", "image": "nginx" }] }
-#          }
-#      })
 
 # Set variable constants
 size = 't3.micro'
@@ -48,7 +30,10 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
     ])
 
 # Define the instance start-up scripting
-server_master_user_data = """#!/bin/bash
+server_master_preconfig = """#!/bin/bash
+
+# Update hostname
+echo litrepublic-www-dev-master | tee /etc/hostname
 
 # Install Helm
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
@@ -70,7 +55,7 @@ echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo th
 server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     instance_type=size,
     vpc_security_group_ids=[admin_group.id], 
-    user_data=server_master_user_data,
+    user_data=server_master_preconfig,
     ami=ami.id,
     key_name='LitRepublicPoc',
     tags={
@@ -91,17 +76,16 @@ conn_master = provisioners.ConnectionArgs(
 # Is there a Pulumi native way to achieve this?
 
 # Execute commands to configure the master node using the provisioner module
-server_master_config = provisioners.RemoteExec('server_master_config',
+server_master_postconfig = provisioners.RemoteExec('server_master_config',
     conn=conn_master,
     commands=[
-        'sleep 10s',
+        'sleep 30s',
         'helm repo add bitnami https://charts.bitnami.com/bitnami',
         'mkdir -p ~/.kube',
         'sleep 10s',
         'ls -la /etc/rancher/k3s',
         'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
         'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
-        'echo hello',
         'sleep 10s'
     ]
 )
