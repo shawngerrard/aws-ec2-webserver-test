@@ -33,7 +33,10 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
 server_master_preconfig = """#!/bin/bash
 
 # Update hostname
-echo litrepublic-www-dev-master | tee /etc/hostname
+hostname="litrepublic-www-dev-master"
+echo $hostname | tee /etc/hostname
+sed -i '1s/.*/$hostname/' /etc/hosts
+hostname $hostname
 
 # Install Helm
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
