@@ -1,3 +1,8 @@
+#----------------------------------------------------------------------------------------------------------------------
+# GENERAL DEFINITIONS
+#----------------------------------------------------------------------------------------------------------------------
+
+
 # Import modules
 import pulumi
 import requests
@@ -7,6 +12,9 @@ import provisioners
 # Set variable constants
 size = 't3.micro'
 extip = requests.get('http://checkip.amazonaws.com/')
+
+# TODO: Implement commands to use refreshed sets of SSH keys to keep these unique
+# const keyName = config.get("keyName") ?? new aws.ec2.KeyPair("key", { publicKey: config.require("publicKey") }).keyName;
 
 # Obtain the private key to use
 key = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
@@ -32,6 +40,12 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
         { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] }
     ])
 
+
+#----------------------------------------------------------------------------------------------------------------------
+# MASTER NODE DEFINITIONS
+#----------------------------------------------------------------------------------------------------------------------
+
+
 # Define the instance start-up scripting
 server_master_preconfig = """#!/bin/bash
 
@@ -54,7 +68,7 @@ kubectl create namespace litrepublic
 kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
 kubectl config use-context litrepublic-www-dev
 
-echo "<html><head><title>Lit Republic WWW Test</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
+echo "<html><head><title>Lit Republic WWW - Development - Master</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
 
 # Define our master node as an AWS EC2 instance
@@ -93,12 +107,85 @@ server_master_postconfig = provisioners.RemoteExec('server_master_config',
     ]
 )
 
+
+#----------------------------------------------------------------------------------------------------------------------
+# WORKER NODE DEFINITIONS
+#----------------------------------------------------------------------------------------------------------------------
+
+
+# TODO: Understand how to use kubectl contexts correctly
+
+# Define the instance start-up scripting
+server_worker1_preconfig = """#!/bin/bash
+
+# Update hostname
+hostname="litrepublic-www-dev-worker1"
+echo $hostname | tee /etc/hostname
+sed -i '1s/.*/$hostname/' /etc/hosts
+hostname $hostname
+
+# Install Helm
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+# Install K3S
+curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
+
+echo "<html><head><title>Lit Republic WWW - Development - Worker 1</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
+"""
+
+# Define our first worker node as an AWS EC2 instance
+server_worker1 = aws.ec2.Instance('litrepublicpoc-www-dev-worker1',
+    instance_type=size,
+    vpc_security_group_ids=[admin_group.id], 
+    user_data=server_worker1_preconfig,
+    ami=ami.id,
+    key_name='LitRepublicPoc',
+    tags={
+        "Name":"litrepublicpoc-ec2-worker1"
+    })
+
+# TODO: Implement proper VPC and allocate addresses?
+
+# Configure provisioner connection string to first worker node
+conn_worker1 = provisioners.ConnectionArgs(
+    host=server_worker1.public_ip,
+    username='ubuntu',
+    private_key=key.read()
+)
+
+# TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
+# Is there a Pulumi native way to achieve this?
+
+# Execute commands to configure the worker node using the provisioner module
+server_worker1_postconfig = provisioners.RemoteExec('server_worker1_config',
+    conn=conn_worker1,
+    commands=[
+        'sleep 30s',
+        'helm repo add bitnami https://charts.bitnami.com/bitnami',
+        'mkdir -p ~/.kube',
+        'sleep 10s',
+        'ls -la /etc/rancher/k3s',
+        'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
+        'sleep 10s'
+    ]
+)
+
+
+#----------------------------------------------------------------------------------------------------------------------
+# OUTPUT DEFINITIONS
+#----------------------------------------------------------------------------------------------------------------------
+
+
 # Current connection string:
 # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2-master --query 'Reservations[].Instances[].PublicDnsName' --output text`
 
 # Export the public IP and hostname of the Amazon server to output
-pulumi.export('publicIp', server_master.public_ip)
-pulumi.export('publicHostName', server_master.public_dns)
+pulumi.export('masterPublicIp', server_master.public_ip)
+pulumi.export('masterPublicHostName', server_master.public_dns)
+pulumi.export('worker1PublicIp', server_worker1.public_ip)
+pulumi.export('worker1PublicHostName', server_worker1.public_dns)
 
 #-------
 # STEPS
