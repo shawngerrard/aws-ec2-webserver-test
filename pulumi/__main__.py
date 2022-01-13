@@ -16,9 +16,11 @@ extip = requests.get('http://checkip.amazonaws.com/')
 # TODO: Implement commands to use refreshed sets of SSH keys to keep these unique
 # const keyName = config.get("keyName") ?? new aws.ec2.KeyPair("key", { publicKey: config.require("publicKey") }).keyName;
 
-# Obtain the private key to use
-key_master = open('/home/shawn/.ssh/LitRepublicPoc_master.pem', "r")
-key_worker1 = open('/home/shawn/.ssh/LitRepublicPoc_worker1.pem', "r")
+# Obtain the key to use
+keyfile = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
+key = keyfile.read()
+keyfile.close()
+
 
 # Define Amazon Machine Image (AMI) to use
 ami = aws.ec2.get_ami(most_recent="true",
@@ -90,7 +92,7 @@ server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
 connection_master = command.remote.ConnectionArgs(
     host=server_master.public_ip,
     user='ubuntu',
-    private_key=key_master.read(),
+    private_key=key,
 )
 
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
@@ -166,7 +168,7 @@ server_worker1 = aws.ec2.Instance('litrepublicpoc-www-dev-worker1',
 connection_worker1 = command.remote.ConnectionArgs(
     host=server_worker1.public_ip,
     user='ubuntu',
-    private_key=key_worker1.read(),
+    private_key=key,
 )
 
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
