@@ -22,8 +22,9 @@ key = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
 
 # Define Amazon Machine Image (AMI) to use
 ami = aws.ec2.get_ami(most_recent="true",
-                  owners=["099720109477"],
-                  filters=[{"name":"image-id","values":["ami-0bf8b986de7e3c7ce"]}])
+    owners=["099720109477"],
+    filters=[{"name":"image-id","values":["ami-0bf8b986de7e3c7ce"]}],
+)
 
 # Define administrator security group to allow SSH & HTTP access
 admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
@@ -39,7 +40,8 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
         { 'protocol': 'tcp', 'from_port': 80, 'to_port': 80, 'cidr_blocks': ['0.0.0.0/0'] },
         { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] },
         { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] }
-    ])
+    ],
+)
 
 
 #----------------------------------------------------------------------------------------------------------------------
@@ -81,32 +83,38 @@ server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     key_name='LitRepublicPoc',
     tags={
         "Name":"litrepublicpoc-ec2-master"
-    })
+    },
+)
 
 # Configure provisioner connection string to master node
 conn_master = command.remote.ConnectionArgs(
     host=server_master.public_ip,
-    username='ubuntu',
-    private_key=key.read()
+    user='ubuntu',
+    private_key=key.read(),
 )
 
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
 # Is there a Pulumi native way to achieve this?
 
-# Execute commands to configure the master node using the provisioner module
-server_master_postconfig = command.remote.Command('server_master_config',
-    conn=conn_master,
-    create=[
-        'sleep 30s',
-        'helm repo add bitnami https://charts.bitnami.com/bitnami',
-        'mkdir -p ~/.kube',
-        'sleep 10s',
-        'ls -la /etc/rancher/k3s',
-        'cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
-        'helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
-        'sleep 10s'
-    ],
+# Add the Bitnami repo to Helm
+server_master_add_bitnami = command.remote.Command('master_add_bitnami',
+    connection=conn_master,
+    create='sleep 30 && helm repo add bitnami https://charts.bitnami.com/bitnami',
     opts=pulumi.ResourceOptions(depends_on=[server_master]),
+)
+
+# Move kube config file from default K3S directory
+server_master_move_kubeconfig = command.remote.Command('master_move_kubeconfig',
+    connection=conn_master,
+    create='mkdir -p ~/.kube && cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
+    opts=pulumi.ResourceOptions(depends_on=[server_master_add_bitnami]),
+)
+
+# Deploy Nginx Helm chart
+server_master_deploy_nginx = command.remote.Command('master_deploy_nginx',
+    connection=conn_master,
+    create='helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
+    opts=pulumi.ResourceOptions(depends_on=[server_master_move_kubeconfig]),
 )
 
 
@@ -205,7 +213,9 @@ pulumi.export('masterPublicHostName', server_master.public_dns)
         # python3 -m venv venv
     # update wheel to ensure this is built OK
         # sudo pip3 install wheel --upgrade 
-    # install deps
+    # activate the venv
+        # source venv/bin/activate
+    # install deps from requirements.txt into venv
         # venv/bin/pip install -r requirements.txt
 # Run Pulumi Up
 # SSH
