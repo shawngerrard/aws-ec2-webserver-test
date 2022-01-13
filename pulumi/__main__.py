@@ -17,7 +17,8 @@ extip = requests.get('http://checkip.amazonaws.com/')
 # const keyName = config.get("keyName") ?? new aws.ec2.KeyPair("key", { publicKey: config.require("publicKey") }).keyName;
 
 # Obtain the private key to use
-key = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
+key_master = open('/home/shawn/.ssh/LitRepublicPoc_master.pem', "r")
+key_worker1 = open('/home/shawn/.ssh/LitRepublicPoc_worker1.pem', "r")
 
 # Define Amazon Machine Image (AMI) to use
 ami = aws.ec2.get_ami(most_recent="true",
@@ -89,7 +90,7 @@ server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
 connection_master = command.remote.ConnectionArgs(
     host=server_master.public_ip,
     user='ubuntu',
-    private_key=key.read(),
+    private_key=key_master.read(),
 )
 
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
@@ -122,7 +123,7 @@ server_master_deploy_nginx = command.remote.Command('master_deploy_nginx',
 # #----------------------------------------------------------------------------------------------------------------------
 
 
-# # TODO: Understand how to use kubectl contexts correctly
+# TODO: Understand how to use kubectl contexts correctly
 
 # Define the instance start-up scripting
 server_worker1_userdata = """#!/bin/bash
@@ -159,14 +160,13 @@ server_worker1 = aws.ec2.Instance('litrepublicpoc-www-dev-worker1',
     tags={
         "Name":"litrepublicpoc-ec2-worker1"
     },
-    opts=pulumi.ResourceOptions(depends_on=[server_master]),
 )
 
 # Configure provisioner connection string to master node
 connection_worker1 = command.remote.ConnectionArgs(
     host=server_worker1.public_ip,
     user='ubuntu',
-    private_key=key.read(),
+    private_key=key_worker1.read(),
 )
 
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
