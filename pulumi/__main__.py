@@ -50,7 +50,7 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
 
 
 # Define the instance start-up scripting
-server_master_preconfig = """#!/bin/bash
+server_master_userdata = """#!/bin/bash
 
 # Update hostname
 hostname="litrepublic-www-dev-master"
@@ -78,7 +78,7 @@ echo "<html><head><title>Lit Republic WWW - Development - Master</title></head><
 server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     instance_type=size,
     vpc_security_group_ids=[admin_group.id], 
-    user_data=server_master_preconfig,
+    user_data=server_master_userdata,
     ami=ami.id,
     key_name='LitRepublicPoc',
     tags={
@@ -87,7 +87,7 @@ server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
 )
 
 # Configure provisioner connection string to master node
-conn_master = command.remote.ConnectionArgs(
+connection_master = command.remote.ConnectionArgs(
     host=server_master.public_ip,
     user='ubuntu',
     private_key=key.read(),
@@ -98,21 +98,21 @@ conn_master = command.remote.ConnectionArgs(
 
 # Add the Bitnami repo to Helm
 server_master_add_bitnami = command.remote.Command('master_add_bitnami',
-    connection=conn_master,
+    connection=connection_master,
     create='sleep 30 && helm repo add bitnami https://charts.bitnami.com/bitnami',
     opts=pulumi.ResourceOptions(depends_on=[server_master]),
 )
 
 # Move kube config file from default K3S directory
 server_master_move_kubeconfig = command.remote.Command('master_move_kubeconfig',
-    connection=conn_master,
+    connection=connection_master,
     create='mkdir -p ~/.kube && cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
     opts=pulumi.ResourceOptions(depends_on=[server_master_add_bitnami]),
 )
 
 # Deploy Nginx Helm chart
 server_master_deploy_nginx = command.remote.Command('master_deploy_nginx',
-    connection=conn_master,
+    connection=connection_master,
     create='helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
     opts=pulumi.ResourceOptions(depends_on=[server_master_move_kubeconfig]),
 )
