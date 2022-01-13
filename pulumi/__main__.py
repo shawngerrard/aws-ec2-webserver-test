@@ -8,7 +8,6 @@ import pulumi
 import requests
 import pulumi_aws as aws
 import pulumi_command as command
-#import provisioners
 
 # Set variable constants
 size = 't3.micro'
