@@ -21,7 +21,6 @@ keyfile = open('/home/shawn/.ssh/LitRepublicPoc.pem', "r")
 key = keyfile.read()
 keyfile.close()
 
-
 # Define Amazon Machine Image (AMI) to use
 ami = aws.ec2.get_ami(most_recent="true",
     owners=["099720109477"],
@@ -119,10 +118,17 @@ server_master_deploy_nginx = command.remote.Command('master_deploy_nginx',
     opts=pulumi.ResourceOptions(depends_on=[server_master_move_kubeconfig]),
 )
 
+# Add the Bitnami repo to Helm
+server_master_get_k3stoken = command.remote.Command('master_get_k3stoken',
+    connection=connection_master,
+    create='sudo cat /var/lib/rancher/k3s/server/node-token',
+    opts=pulumi.ResourceOptions(depends_on=[server_master_deploy_nginx]),
+)
 
-# #----------------------------------------------------------------------------------------------------------------------
-# # WORKER NODE DEFINITIONS
-# #----------------------------------------------------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------------------------------
+# WORKER NODE DEFINITIONS
+#----------------------------------------------------------------------------------------------------------------------
 
 
 # TODO: Understand how to use kubectl contexts correctly
@@ -136,22 +142,11 @@ echo $hostname | tee /etc/hostname
 sed -i '1s/.*/$hostname/' /etc/hosts
 hostname $hostname
 
-# Install Helm
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-
 # Install K3S
-curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
+curl -sfL https://get.k3s.io | K3S_URL=https://""" + str(server_master.private_ip) + """:6443 K3S_TOKEN=""" + str(server_master_get_k3stoken.stdout).strip() + """ sh -s - agent --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
 
-# Create Lit Republic namespace and context in Kubernetes
-kubectl create namespace litrepublic
-kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
-kubectl config use-context litrepublic-www-dev
-
-echo "<html><head><title>Lit Republic WWW - Development - Worker 1</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
-
+#curl -sfL https://get.k3s.io | K3S_URL=https://172.31.11.233:6443 K3S_TOKEN=K104e25bc173c7cfc4b24924413e9b56e222bae38e995bb1707b863cb601dfe47f0::server:c96e9d1be49e2751ee09dc50161a1558 sh -s --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
 # Define our master node as an AWS EC2 instance
 server_worker1 = aws.ec2.Instance('litrepublicpoc-www-dev-worker1',
     instance_type=size,
@@ -174,27 +169,6 @@ connection_worker1 = command.remote.ConnectionArgs(
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
 # Is there a Pulumi native way to achieve this?
 
-# Add the Bitnami repo to Helm
-server_worker1_add_bitnami = command.remote.Command('worker1_add_bitnami',
-    connection=connection_worker1,
-    create='sleep 30 && helm repo add bitnami https://charts.bitnami.com/bitnami',
-    opts=pulumi.ResourceOptions(depends_on=[server_worker1]),
-)
-
-# Move kube config file from default K3S directory
-server_worker1_move_kubeconfig = command.remote.Command('worker1_move_kubeconfig',
-    connection=connection_worker1,
-    create='mkdir -p ~/.kube && cp /etc/rancher/k3s/k3s.yaml ~/.kube/config',
-    opts=pulumi.ResourceOptions(depends_on=[server_worker1_add_bitnami]),
-)
-
-# Deploy Nginx Helm chart
-server_worker1_deploy_nginx = command.remote.Command('worker1_deploy_nginx',
-    connection=connection_worker1,
-    create='helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
-    opts=pulumi.ResourceOptions(depends_on=[server_worker1_move_kubeconfig]),
-)
-
 
 #----------------------------------------------------------------------------------------------------------------------
 # OUTPUT DEFINITIONS
@@ -206,10 +180,12 @@ server_worker1_deploy_nginx = command.remote.Command('worker1_deploy_nginx',
 # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2-worker1 --query 'Reservations[].Instances[].PublicDnsName' --output text`
 
 # Export the public IP and hostname of the Amazon server to output
-pulumi.export('masterPublicIp', server_master.public_ip)
-pulumi.export('masterPublicHostName', server_master.public_dns)
-pulumi.export('worker1PublicIp', server_worker1.public_ip)
-pulumi.export('worker1PublicHostName', server_worker1.public_dns)
+pulumi.export('Master Public IP', server_master.public_ip)
+pulumi.export('Master Public hostname', server_master.public_dns)
+pulumi.export('Worker1 public IP', server_worker1.public_ip)
+pulumi.export('Worker1 public hostname', server_worker1.public_dns)
+pulumi.export('K3S node token',server_master_get_k3stoken.stdout)
+pulumi.export('Master private IP',server_master.private_ip)
 
 #-------
 # STEPS
