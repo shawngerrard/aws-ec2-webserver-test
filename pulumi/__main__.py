@@ -27,23 +27,75 @@ ami = aws.ec2.get_ami(most_recent="true",
     filters=[{"name":"image-id","values":["ami-0bf8b986de7e3c7ce"]}],
 )
 
+### TESTING - Create VPC
+vpc = aws.ec2.Vpc("vpc", 
+    cidr_block="10.0.0.0/16", 
+    enable_dns_hostnames=True,
+    tags={
+        "Name": "vpc",
+    })
+
+### TESTING - Create Internet gateway
+igateway = aws.ec2.InternetGateway("igateway",
+    vpc_id=vpc.id,
+    tags={
+        "Name": "igateway",
+    })
+
+### TESTING - Create subnet
+subnet = aws.ec2.Subnet("subnet",
+    vpc_id=vpc.id,
+    cidr_block="10.0.1.0/24",
+    map_public_ip_on_launch=True,
+    tags={
+        "Name": "subnet",
+    })
+
+### TESTING - Create route table
+route_table = aws.ec2.RouteTable("route_table",
+    vpc_id=vpc.id,
+    routes=[
+        aws.ec2.RouteTableRouteArgs(
+            cidr_block="0.0.0.0/0",
+            gateway_id=igateway.id,
+        ),
+    ],
+    tags={
+        "Name": "route_table",
+    })
+
+### TESTING - Associate route table with subnet
+route_table_association = aws.ec2.RouteTableAssociation("routeTableAssociation",
+    subnet_id=subnet.id,
+    route_table_id=route_table.id)
+
 # Define administrator security group to allow SSH & HTTP access
 admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
     description='Enable SSH and HTTP access for Lit Republic',
+    vpc_id=vpc.id,
     ingress=[
         { 'protocol': 'tcp', 'from_port': 22, 'to_port': 22, 'cidr_blocks': [extip.text.strip()+'/32'] },
         { 'protocol': 'tcp', 'from_port': 80, 'to_port': 80, 'cidr_blocks': ['0.0.0.0/0'] },
         { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] },
-        { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] }
+        { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] },
+        { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [subnet.cidr_block] },
     ],
     egress=[
         { 'protocol': 'tcp', 'from_port': 22, 'to_port': 22, 'cidr_blocks': [extip.text.strip()+'/32'] },
         { 'protocol': 'tcp', 'from_port': 80, 'to_port': 80, 'cidr_blocks': ['0.0.0.0/0'] },
         { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] },
-        { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] }
+        { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] },
+        { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [subnet.cidr_block] },
+
     ],
 )
+#ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@
 
+
+# # Define Kubernetes API security group to allow SSH & HTTP access
+# k3sapi_group = aws.ec2.SecurityGroup('litrepublicpoc-kubernetesapi-secg',
+#     description='Enable Kubernetes API access for Lit Republic K3S',
+# )
 
 #----------------------------------------------------------------------------------------------------------------------
 # MASTER NODE DEFINITIONS
@@ -59,18 +111,10 @@ echo $hostname | tee /etc/hostname
 sed -i '1s/.*/$hostname/' /etc/hosts
 hostname $hostname
 
-# Install Helm
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-
-# Install K3S
-curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
-
 # Create Lit Republic namespace and context in Kubernetes
-kubectl create namespace litrepublic
-kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
-kubectl config use-context litrepublic-www-dev
+#kubectl create namespace litrepublic
+#kubectl config set-context litrepublic-www-dev --namespace=litrepublic --user=default --cluster=default
+#kubectl config use-context litrepublic-www-dev
 
 echo "<html><head><title>Lit Republic WWW - Development - Master</title></head><body>Well, helo thar fren!</body></html>" > /home/ubuntu/index.html
 """
@@ -78,6 +122,7 @@ echo "<html><head><title>Lit Republic WWW - Development - Master</title></head><
 # Define our master node as an AWS EC2 instance
 server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     instance_type=size,
+    subnet_id=subnet.id,
     vpc_security_group_ids=[admin_group.id], 
     user_data=server_master_userdata,
     ami=ami.id,
@@ -97,11 +142,25 @@ connection_master = command.remote.ConnectionArgs(
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
 # Is there a Pulumi native way to achieve this?
 
+# Install Helm into the new instance
+server_master_install_helm = command.remote.Command('master_install_helm',
+    connection=connection_master,
+    create='curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && chmod 700 get_helm.sh && sudo ./get_helm.sh',
+    opts=pulumi.ResourceOptions(depends_on=[server_master]),
+)
+
+# Install K3S into the new instance
+server_master_install_k3s = command.remote.Command('master_install_k3s',
+    connection=connection_master,
+    create='curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb',
+    opts=pulumi.ResourceOptions(depends_on=[server_master_install_helm]),
+)
+
 # Add the Bitnami repo to Helm
 server_master_add_bitnami = command.remote.Command('master_add_bitnami',
     connection=connection_master,
     create='sleep 30 && helm repo add bitnami https://charts.bitnami.com/bitnami',
-    opts=pulumi.ResourceOptions(depends_on=[server_master]),
+    opts=pulumi.ResourceOptions(depends_on=[server_master_install_k3s]),
 )
 
 # Move kube config file from default K3S directory
@@ -142,15 +201,13 @@ echo $hostname | tee /etc/hostname
 sed -i '1s/.*/$hostname/' /etc/hosts
 hostname $hostname
 
-# Install K3S
-curl -sfL https://get.k3s.io | K3S_URL=https://""" + str(server_master.private_ip) + """:6443 K3S_TOKEN=""" + str(server_master_get_k3stoken.stdout).strip() + """ sh -s - agent --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
-
 """
-#curl -sfL https://get.k3s.io | K3S_URL=https://172.31.11.233:6443 K3S_TOKEN=K104e25bc173c7cfc4b24924413e9b56e222bae38e995bb1707b863cb601dfe47f0::server:c96e9d1be49e2751ee09dc50161a1558 sh -s --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb
+
 # Define our master node as an AWS EC2 instance
 server_worker1 = aws.ec2.Instance('litrepublicpoc-www-dev-worker1',
     instance_type=size,
     vpc_security_group_ids=[admin_group.id], 
+    subnet_id=subnet.id,
     user_data=server_worker1_userdata,
     ami=ami.id,
     key_name='LitRepublicPoc',
@@ -166,6 +223,14 @@ connection_worker1 = command.remote.ConnectionArgs(
     private_key=key,
 )
 
+
+# Add the Bitnami repo to Helm
+server_worker1_install_k3s = command.remote.Command('worker1_install_k3s',
+    connection=connection_worker1,
+    create='curl -sfL https://get.k3s.io | K3S_URL=https://' + str(server_master.private_ip) + ':6443 K3S_TOKEN=' + str(server_master_get_k3stoken.stdout).strip() + ' sh -s - agent',
+    opts=pulumi.ResourceOptions(depends_on=[server_master_deploy_nginx]),
+)
+#curl -sfL https://get.k3s.io | K3S_URL=https://10.0.1.200:6443 K3S_TOKEN=K1088bcb744f4a15bec2319f5ffc66f9ba679eca9d5fbce4165a7043e46e53baddc::server:69112b1859efa85bffe764df783cf840 sh -s - agent
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
 # Is there a Pulumi native way to achieve this?
 
@@ -186,6 +251,9 @@ pulumi.export('Worker1 public IP', server_worker1.public_ip)
 pulumi.export('Worker1 public hostname', server_worker1.public_dns)
 pulumi.export('K3S node token',server_master_get_k3stoken.stdout)
 pulumi.export('Master private IP',server_master.private_ip)
+pulumi.export('Master subnet ID',server_master.subnet_id)
+
+
 
 #-------
 # STEPS

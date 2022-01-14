@@ -2,7 +2,7 @@ pulumi>=3.0.0,<4.0.0
 pulumi-aws>=4.0.0,<5.0.0
 pulumi-kubernetes
 pulumi-command
+pulumi-aws-quickstart-vpc
 requests
 paramiko>=2.7.1
 typing_extensions>=3.7.4
-
