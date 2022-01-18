@@ -184,8 +184,16 @@ server_master_get_k3stoken = command.remote.Command('master_get_k3stoken',
     opts=pulumi.ResourceOptions(depends_on=[server_master_deploy_nginx]),
 )
 
+# Define a function to reformat the K3S node token
+def format_node_token(token) -> Output:
+    tokenStr = token.strip()
+    return tokenStr
+
+# Reformat the K3S node token from the master server output
+node_token = server_master_get_k3stoken.stdout.apply(lambda v: format_node_token(v[0]))
+
 # Create the K3S join string to attach worker nodes later
-k3s_join_command = Output.concat("curl -sfL https://get.k3s.io | K3S_URL=https://",server_master.private_ip,":6443 K3S_TOKEN=",server_master_get_k3stoken.stdout," sh -s - agent")
+k3s_join_command = Output.concat("curl -sfL https://get.k3s.io | K3S_URL=https://",server_master.private_ip,":6443 K3S_TOKEN=",node_token," sh -s - agent")
 
 
 #----------------------------------------------------------------------------------------------------------------------
@@ -236,7 +244,7 @@ connection_worker1 = command.remote.ConnectionArgs(
 # Install K3S into the worker node using K3S join string defined above
 server_worker1_install_k3s = command.remote.Command('worker1_install_k3s',
     connection=connection_worker1,
-    create=k3s_join_command.apply(lambda v: print(str(v).strip())),
+    create=k3s_join_command.apply(lambda v: v),
     opts=pulumi.ResourceOptions(depends_on=[server_master_deploy_nginx]),
 )
 
@@ -262,7 +270,7 @@ pulumi.export('Master Subnet ID',server_master.subnet_id)
 pulumi.export('Worker1 Public IP', server_worker1.public_ip)
 pulumi.export('Worker1 Public Hostname', server_worker1.public_dns)
 pulumi.export('Worker1 Private IP', server_worker1.private_ip)
-pulumi.export('K3S Node Token',server_master_get_k3stoken.stdout)
+pulumi.export('K3S Node Token',node_token)
 
 
 #-------
