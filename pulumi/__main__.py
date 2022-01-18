@@ -5,6 +5,7 @@
 
 # Import modules
 import pulumi
+from pulumi import Output
 import requests
 import pulumi_aws as aws
 import pulumi_command as command
@@ -89,13 +90,12 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
 
     ],
 )
-#ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@
-
 
 # # Define Kubernetes API security group to allow SSH & HTTP access
 # k3sapi_group = aws.ec2.SecurityGroup('litrepublicpoc-kubernetesapi-secg',
 #     description='Enable Kubernetes API access for Lit Republic K3S',
 # )
+
 
 #----------------------------------------------------------------------------------------------------------------------
 # MASTER NODE DEFINITIONS
@@ -177,12 +177,15 @@ server_master_deploy_nginx = command.remote.Command('master_deploy_nginx',
     opts=pulumi.ResourceOptions(depends_on=[server_master_move_kubeconfig]),
 )
 
-# Add the Bitnami repo to Helm
+# Output the k3s node token to be used later
 server_master_get_k3stoken = command.remote.Command('master_get_k3stoken',
     connection=connection_master,
     create='sudo cat /var/lib/rancher/k3s/server/node-token',
     opts=pulumi.ResourceOptions(depends_on=[server_master_deploy_nginx]),
 )
+
+# Create the K3S join string to attach worker nodes later
+k3s_join_command = Output.concat("curl -sfL https://get.k3s.io | K3S_URL=https://",server_master.private_ip,":6443 K3S_TOKEN=",server_master_get_k3stoken.stdout," sh -s - agent")
 
 
 #----------------------------------------------------------------------------------------------------------------------
@@ -223,14 +226,21 @@ connection_worker1 = command.remote.ConnectionArgs(
     private_key=key,
 )
 
+# # TESTING - test string output
+# server_worker1_test_output = command.remote.Command('worker1_test_output',
+#     connection=connection_worker1,
+#     create='K3S_URL=https://' + str(server_master.private_ip) + ':6443 && K3S_TOKEN=' + str(server_master_get_k3stoken.stdout).strip(),
+#     opts=pulumi.ResourceOptions(depends_on=[server_master_deploy_nginx]),
+# )
 
-# Add the Bitnami repo to Helm
+# Install K3S into the worker node using K3S join string defined above
 server_worker1_install_k3s = command.remote.Command('worker1_install_k3s',
     connection=connection_worker1,
-    create='curl -sfL https://get.k3s.io | K3S_URL=https://' + str(server_master.private_ip) + ':6443 K3S_TOKEN=' + str(server_master_get_k3stoken.stdout).strip() + ' sh -s - agent',
+    create=k3s_join_command.apply(lambda v: print(str(v).strip())),
     opts=pulumi.ResourceOptions(depends_on=[server_master_deploy_nginx]),
 )
-#curl -sfL https://get.k3s.io | K3S_URL=https://10.0.1.200:6443 K3S_TOKEN=K1088bcb744f4a15bec2319f5ffc66f9ba679eca9d5fbce4165a7043e46e53baddc::server:69112b1859efa85bffe764df783cf840 sh -s - agent
+
+#curl -sfL https://get.k3s.io | K3S_URL=https://10.0.1.217:6443 K3S_TOKEN=K109a5018870d3ece20be6aa7b3ec5faa4220280b34e0b7e2176bffa99fe3e64c01::server:ff93f67ba612abae9af09031d924aa60 sh -s - agent
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
 # Is there a Pulumi native way to achieve this?
 
@@ -247,12 +257,12 @@ server_worker1_install_k3s = command.remote.Command('worker1_install_k3s',
 # Export the public IP and hostname of the Amazon server to output
 pulumi.export('Master Public IP', server_master.public_ip)
 pulumi.export('Master Public hostname', server_master.public_dns)
-pulumi.export('Worker1 public IP', server_worker1.public_ip)
-pulumi.export('Worker1 public hostname', server_worker1.public_dns)
-pulumi.export('K3S node token',server_master_get_k3stoken.stdout)
-pulumi.export('Master private IP',server_master.private_ip)
-pulumi.export('Master subnet ID',server_master.subnet_id)
-
+pulumi.export('Master Private IP',server_master.private_ip)
+pulumi.export('Master Subnet ID',server_master.subnet_id)
+pulumi.export('Worker1 Public IP', server_worker1.public_ip)
+pulumi.export('Worker1 Public Hostname', server_worker1.public_dns)
+pulumi.export('Worker1 Private IP', server_worker1.private_ip)
+pulumi.export('K3S Node Token',server_master_get_k3stoken.stdout)
 
 
 #-------
