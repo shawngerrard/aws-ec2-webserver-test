@@ -91,11 +91,6 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
     ],
 )
 
-# # Define Kubernetes API security group to allow SSH & HTTP access
-# k3sapi_group = aws.ec2.SecurityGroup('litrepublicpoc-kubernetesapi-secg',
-#     description='Enable Kubernetes API access for Lit Republic K3S',
-# )
-
 
 #----------------------------------------------------------------------------------------------------------------------
 # MASTER NODE DEFINITIONS
@@ -233,13 +228,6 @@ connection_worker1 = command.remote.ConnectionArgs(
     user='ubuntu',
     private_key=key,
 )
-
-# # TESTING - test string output
-# server_worker1_test_output = command.remote.Command('worker1_test_output',
-#     connection=connection_worker1,
-#     create='K3S_URL=https://' + str(server_master.private_ip) + ':6443 && K3S_TOKEN=' + str(server_master_get_k3stoken.stdout).strip(),
-#     opts=pulumi.ResourceOptions(depends_on=[server_master_deploy_nginx]),
-# )
 
 # Install K3S into the worker node using K3S join string defined above
 server_worker1_install_k3s = command.remote.Command('worker1_install_k3s',
