@@ -28,7 +28,7 @@ ami = aws.ec2.get_ami(most_recent="true",
     filters=[{"name":"image-id","values":["ami-0bf8b986de7e3c7ce"]}],
 )
 
-### TESTING - Create VPC
+# Create VPC
 vpc = aws.ec2.Vpc("vpc", 
     cidr_block="10.0.0.0/16", 
     enable_dns_hostnames=True,
@@ -36,14 +36,14 @@ vpc = aws.ec2.Vpc("vpc",
         "Name": "vpc",
     })
 
-### TESTING - Create Internet gateway
+# Create Internet gateway
 igateway = aws.ec2.InternetGateway("igateway",
     vpc_id=vpc.id,
     tags={
         "Name": "igateway",
     })
 
-### TESTING - Create subnet
+# Create subnet
 subnet = aws.ec2.Subnet("subnet",
     vpc_id=vpc.id,
     cidr_block="10.0.1.0/24",
@@ -52,7 +52,7 @@ subnet = aws.ec2.Subnet("subnet",
         "Name": "subnet",
     })
 
-### TESTING - Create route table
+# Create route table
 route_table = aws.ec2.RouteTable("route_table",
     vpc_id=vpc.id,
     routes=[
@@ -63,9 +63,10 @@ route_table = aws.ec2.RouteTable("route_table",
     ],
     tags={
         "Name": "route_table",
-    })
+    }
+)
 
-### TESTING - Associate route table with subnet
+# Associate route table with subnet
 route_table_association = aws.ec2.RouteTableAssociation("routeTableAssociation",
     subnet_id=subnet.id,
     route_table_id=route_table.id)
@@ -87,7 +88,6 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
         { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] },
         { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [extip.text.strip()+'/32'] },
         { 'protocol': 'tcp', 'from_port': 6443, 'to_port': 6443, 'cidr_blocks': [subnet.cidr_block] },
-
     ],
 )
 
@@ -97,7 +97,7 @@ admin_group = aws.ec2.SecurityGroup('litrepublicpoc-administrator-secg',
 #----------------------------------------------------------------------------------------------------------------------
 
 
-# Define the instance start-up scripting
+# Define the instance start-up script
 server_master_userdata = """#!/bin/bash
 
 # Update hostname
@@ -127,7 +127,7 @@ server_master = aws.ec2.Instance('litrepublicpoc-www-dev-master',
     },
 )
 
-# Configure provisioner connection string to master node
+# Configure a provisioner connection string to send commands to the master node
 connection_master = command.remote.ConnectionArgs(
     host=server_master.public_ip,
     user='ubuntu',
@@ -137,14 +137,14 @@ connection_master = command.remote.ConnectionArgs(
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
 # Is there a Pulumi native way to achieve this?
 
-# Install Helm into the new instance
+# Install Helm into the master node
 server_master_install_helm = command.remote.Command('master_install_helm',
     connection=connection_master,
     create='curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && chmod 700 get_helm.sh && sudo ./get_helm.sh',
     opts=pulumi.ResourceOptions(depends_on=[server_master]),
 )
 
-# Install K3S into the new instance
+# Install K3S into the master node
 server_master_install_k3s = command.remote.Command('master_install_k3s',
     connection=connection_master,
     create='curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --no-deploy traefik --no-deploy servicelb',
@@ -185,7 +185,7 @@ def format_node_token(token) -> Output:
     return tokenStr
 
 # Reformat the K3S node token from the master server output
-node_token = server_master_get_k3stoken.stdout.apply(lambda v: format_node_token(v[0]))
+node_token = server_master_get_k3stoken.stdout.apply(lambda v: format_node_token(v))
 
 # Create the K3S join string to attach worker nodes later
 k3s_join_command = Output.concat("curl -sfL https://get.k3s.io | K3S_URL=https://",server_master.private_ip,":6443 K3S_TOKEN=",node_token," sh -s - agent")
@@ -236,7 +236,6 @@ server_worker1_install_k3s = command.remote.Command('worker1_install_k3s',
     opts=pulumi.ResourceOptions(depends_on=[server_master_deploy_nginx]),
 )
 
-#curl -sfL https://get.k3s.io | K3S_URL=https://10.0.1.217:6443 K3S_TOKEN=K109a5018870d3ece20be6aa7b3ec5faa4220280b34e0b7e2176bffa99fe3e64c01::server:ff93f67ba612abae9af09031d924aa60 sh -s - agent
 # TODO: Implement Py FOR loop to check if K3S service and Helm have installed and are running before doing stuff
 # Is there a Pulumi native way to achieve this?
 
@@ -245,10 +244,6 @@ server_worker1_install_k3s = command.remote.Command('worker1_install_k3s',
 # OUTPUT DEFINITIONS
 #----------------------------------------------------------------------------------------------------------------------
 
-
-# Current connection strings:
-# ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2-master --query 'Reservations[].Instances[].PublicDnsName' --output text`
-# ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2-worker1 --query 'Reservations[].Instances[].PublicDnsName' --output text`
 
 # Export the public IP and hostname of the Amazon server to output
 pulumi.export('Master Public IP', server_master.public_ip)
@@ -280,9 +275,14 @@ pulumi.export('K3S Node Token',node_token)
         # source venv/bin/activate
     # install deps from requirements.txt into venv
         # venv/bin/pip install -r requirements.txt
+# Configure __main__.py with infrastructure code
 # Run Pulumi Up
+    # enable logging
+        # pulumi up -y -v=9 2> log.txt
 # SSH
     # verify installation
+        # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2-master --query 'Reservations[].Instances[].PublicDnsName' --output text`
+        # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2-worker1 --query 'Reservations[].Instances[].PublicDnsName' --output text`
 # SCP kubeconfig file from ec2 to local
     # update kubeconfig file with external ip of ec2
 # install kubectl
