@@ -279,7 +279,7 @@ pulumi.export('K3S Node Token',node_token)
 # Run Pulumi Up
     # enable logging
         # pulumi up -y -v=9 2> log.txt
-# SSH
+# SSH to nodes
     # verify installation
         # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2-master --query 'Reservations[].Instances[].PublicDnsName' --output text`
         # ssh -i ~/.ssh/LitRepublicPoc.pem ubuntu@`aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:Name,Values=litrepublicpoc-ec2-worker1 --query 'Reservations[].Instances[].PublicDnsName' --output text`
@@ -290,5 +290,16 @@ pulumi.export('K3S Node Token',node_token)
     # remove TLS certificate check from node
         # kubectl --version
         # kubectl get nodes --insecure-skip-tls-verify
+# Create helm chart repository
+    # helm chart releaser
+        # https://harness.io/blog/helm-chart-repo/
+        # https://helm.sh/docs/howto/chart_releaser_action/
+        # create git repo w/ versioning branch
+            # https://medium.com/@mattiaperi/create-a-public-helm-chart-repository-with-github-pages-49b180dbb417
+    # Download helm charts to local
+        # helm pull <repo name/chart> --untar=true
+            # helm pull bitnami/nginx-ingress-controller --untar=true
+            # helm pull bitnami/wordpress --untar=true
+    #
 # Deploy wordpress
     # Use 'set' option in helm install to configure wordpress
