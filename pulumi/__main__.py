@@ -319,3 +319,13 @@ pulumi.export('K3S Node Token',node_token)
     # MISSING STEP HERE?
 # Deploy wordpress
     # Use 'set' option in helm install to configure wordpress
+
+
+#---------------------
+# SUPPORT APPS
+#---------------------
+# Use yamllint to debug yaml code (E.G helm charts)
+    # Install:
+        # sudo apt-get update && sudo apt-get install yamllint -y
+    # To use:
+        # yamllint <filename>
