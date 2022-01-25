@@ -154,7 +154,7 @@ server_master_install_k3s = command.remote.Command('master_install_k3s',
 # Add the Bitnami repo to Helm
 server_master_add_bitnami = command.remote.Command('master_add_bitnami',
     connection=connection_master,
-    create='sleep 30 && helm repo add bitnami https://charts.bitnami.com/bitnami',
+    create='sleep 30 && helm repo add litrepublic-charts https://shawngerrard.github.io/helm-charts',
     opts=pulumi.ResourceOptions(depends_on=[server_master_install_k3s]),
 )
 
@@ -291,15 +291,23 @@ pulumi.export('K3S Node Token',node_token)
         # kubectl --version
         # kubectl get nodes --insecure-skip-tls-verify
 # Create helm chart repository
-    # helm chart releaser
+    # get helm chart releaser
         # https://harness.io/blog/helm-chart-repo/
         # https://helm.sh/docs/howto/chart_releaser_action/
-        # create git repo w/ versioning branch
-            # https://medium.com/@mattiaperi/create-a-public-helm-chart-repository-with-github-pages-49b180dbb417
-    # Download helm charts to local
+    # create git repo w/ versioning branch
+        # https://medium.com/@mattiaperi/create-a-public-helm-chart-repository-with-github-pages-49b180dbb417
+    # download helm charts to local
         # helm pull <repo name/chart> --untar=true
             # helm pull bitnami/nginx-ingress-controller --untar=true
             # helm pull bitnami/wordpress --untar=true
+    # update chart dependencies based upon each Chart.yaml
+        # helm dependency update wordpress
+        # helm dependency update nginx-ingress-controller
+    # create github workflow actions (release.yaml)
+    # push uncommitted changes of helm charts (dependencies, index.yaml, etc) to github
+    # test chart release by incrementing chart version number and pushing
+        # review workflow steps under actions link in github
+    # update references to helm repos in Pulumi (main.py)
     # MISSING STEP HERE?
 # Deploy wordpress
     # Use 'set' option in helm install to configure wordpress
