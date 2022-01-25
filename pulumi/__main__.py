@@ -154,7 +154,7 @@ server_master_install_k3s = command.remote.Command('master_install_k3s',
 # Add the Bitnami repo to Helm
 server_master_add_bitnami = command.remote.Command('master_add_bitnami',
     connection=connection_master,
-    create='sleep 30 && helm repo add litrepublic-charts https://shawngerrard.github.io/helm-charts',
+    create='sleep 30 && helm repo add litrepublic https://shawngerrard.github.io/helm-charts',
     opts=pulumi.ResourceOptions(depends_on=[server_master_install_k3s]),
 )
 
@@ -168,7 +168,7 @@ server_master_move_kubeconfig = command.remote.Command('master_move_kubeconfig',
 # Deploy Nginx Helm chart
 server_master_deploy_nginx = command.remote.Command('master_deploy_nginx',
     connection=connection_master,
-    create='helm install litrepublicpoc-ec2-nginx bitnami/nginx-ingress-controller',
+    create='helm install litrepublicpoc-ec2-nginx litrepublic/nginx-ingress-controller',
     opts=pulumi.ResourceOptions(depends_on=[server_master_move_kubeconfig]),
 )
 
